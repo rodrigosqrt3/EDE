@@ -1,3 +1,17 @@
+#' Extinction date estimate
+#'
+#' Common S3 result class returned by every estimator in this package.
+#'
+#' @format A list with components:
+#' \describe{
+#'   \item{estimate}{Point estimate, or `NA` if not defined for this method.}
+#'   \item{lower, upper}{Confidence interval bounds, or `NA` if not defined.}
+#'   \item{method}{Character string identifying the estimator.}
+#'   \item{alpha}{Significance level used to compute the estimate.}
+#' }
+#' @name ede_estimate
+NULL
+
 #' @keywords internal
 #' @noRd
 new_ede_estimate <- function(estimate, lower = NA_real_, upper = NA_real_,
