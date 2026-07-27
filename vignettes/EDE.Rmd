@@ -1,0 +1,210 @@
+---
+title: "Estimating extinction dates from sighting records"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Estimating extinction dates from sighting records}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 5)
+```
+
+## Abstract
+
+When a species has not been reliably sighted for a long time, two
+questions follow: is it still extant, and if not, when did it most likely
+disappear. Both questions can be addressed from the sighting record alone,
+without additional biological data, if a null model of the sighting
+process is assumed. This vignette summarizes the six estimators
+implemented in EDE, applies them to a single worked example, and discusses
+where and why they disagree.
+
+## The problem
+
+A sighting record is a sequence of confirmed observations of a species
+over time, typically sparse and irregular. Extinction is rarely directly
+observed; what is observed is the absence of further sightings after some
+last confirmed date. Two related problems arise from this kind of record:
+
+1. **Persistence testing.** Given a candidate year, is the absence of
+   sightings since the last confirmed one statistically surprising under
+   the assumption that the species is still present and being observed at
+   its historical rate? If so, persistence is rejected.
+2. **Point and interval estimation.** Rather than testing a single
+   candidate year, estimate the most likely extinction date directly, with
+   a measure of uncertainty when possible.
+
+The estimators below differ in which of these two problems they solve,
+and in what they assume about the process that generates sightings.
+
+## The estimators
+
+**Robson & Whitlock (1964).** Extrapolates from the gap between the two
+most recent sightings, scaled by `(1 - alpha) / alpha`. Assumes the
+sighting process behaves, near the true endpoint, like a uniform record
+process. No confidence interval; a single point estimate.
+
+**Strauss & Sadler (1989).** A classical confidence bound on the true
+endpoint of a temporal range, given only the first and last sighting and
+the number of sightings in between, under a uniform-occurrence model
+within the range. Was developed for stratigraphic ranges and applies
+directly to sighting ranges. Fast, but uses only three summary numbers
+from the record and ignores its internal spacing.
+
+**Roberts & Solow (2003), `ole()`.** The best linear unbiased estimator
+under a Weibull-type record-value model fit to the spacing of the largest
+sighting times. Uses every recorded sighting time, not just the extremes,
+and returns both a point estimate and a confidence interval. Requires at
+least three sightings with a positive count.
+
+**Solow (1993).** A nonparametric persistence test. Under a homogeneous
+Poisson sighting process, the ratio of "time since last sighting" to
+"total observation window" has a known null distribution; raising it to
+the power of the total sighting count gives the chance of persistence at
+a candidate year. Simple, and does not require knowing when in the window
+each sighting occurred beyond the last one, but treats sighting effort as
+constant over time.
+
+**Solow (2005).** The same logic as Solow (1993), but the observation
+window is weighted by cumulative sighting effort (sighting count times
+time since the first sighting) instead of raw elapsed time. This matters
+when sighting effort was not constant: a record with many early sightings
+and very few late ones is not equally informative per year throughout.
+
+**Burgman, Grimson & Ferson (1995).** A combinatorial persistence test.
+If sightings were placed uniformly at random across the candidate window,
+what is the probability that the largest observed gap between sightings
+would not exceed the gap actually seen. Computed via an
+inclusion-exclusion argument over Stirling numbers of the second kind.
+Makes no distributional assumption beyond uniform placement, at the cost
+of being the most computationally expensive of the six.
+
+`solow1993()`, `solow2005()`, and `burgman1995()` all return either the
+first candidate year at which the chance of persistence drops to or below
+`alpha`, or, with `data_out = TRUE`, the full curve of chance against
+candidate year.
+
+## A worked example
+
+The dataset below is illustrative, built to resemble a typical
+sighting record for a rare, possibly extinct species: frequent early
+sightings, increasingly sparse later ones, and a long silence after the
+last confirmed observation.
+
+```{r}
+library(EDE)
+
+years <- c(1900, 1902, 1903, 1905, 1907, 1908, 1910, 1912, 1915, 1918,
+           1920, 1923, 1925, 1928, 1930, 1933, 1936)
+sightings <- c(4, 3, 5, 2, 3, 4, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1)
+
+sd <- sighting_data(data.frame(year = years, sightings = sightings))
+sd
+```
+
+The last confirmed sighting is 1936. Sighting frequency was already
+declining well before that: the median gap between sightings is 2 years
+up to 1915, and grows to 3 years afterward.
+
+### Running all six estimators
+
+```{r}
+ole(sd)
+robson1964(sd)
+strauss1989(sd)
+solow1993(sd, test_year = 2000)
+solow2005(sd, test_year = 2000)
+burgman1995(sd, test_year = 2000)
+```
+
+| Method | Estimate | Notes |
+|---|---|---|
+| Robson & Whitlock (1964) | 1993 | extrapolates only from the last two sightings (1933, 1936); with a 3-year gap and alpha = 0.05, extrapolates 57 years forward |
+| Strauss & Sadler (1989) | 1943.4 | uses only the range (1900-1936) and the sighting count |
+| Roberts & Solow (2003) | 1940.6, CI [1936.3, 1954.0] | uses the full spacing of all 17 sighting times |
+| Solow (1993) | 1940 | first year the persistence chance drops below 0.05, weighting the window by elapsed time |
+| Solow (2005) | not rejected by 2000 | same test, weighted by sighting effort instead |
+| Burgman, Grimson & Ferson (1995) | 1944 | first year the gap-occupancy chance drops below 0.05, on a decreasing run |
+
+### Why Solow (1993) and Solow (2005) disagree
+
+```{r}
+curve_1993 <- solow1993(sd, test_year = 2000, data_out = TRUE)
+curve_2005 <- solow2005(sd, test_year = 2000, data_out = TRUE)
+
+plot(curve_1993$time, curve_1993$chance, type = "l", lwd = 2, col = "steelblue",
+     ylim = c(0, 1), xlab = "candidate extinction year", ylab = "chance of persistence")
+lines(curve_2005$time, curve_2005$chance, lwd = 2, col = "firebrick")
+abline(h = 0.05, lty = 2, col = "grey50")
+legend("topright", legend = c("Solow (1993)", "Solow (2005)", "alpha = 0.05"),
+       col = c("steelblue", "firebrick", "grey50"), lty = c(1, 1, 2), lwd = c(2, 2, 1), bty = "n")
+```
+
+Solow (1993) treats every year of the observation window as equally
+informative, so the chance of persistence decays steadily as the silence
+after 1936 lengthens, crossing 0.05 in 1940. Solow (2005) instead weights
+each year by how much sighting effort it represents, inferred from the
+sighting record itself. Because sightings were already sparse well before
+1936, the model attributes less evidential weight to the recent silence,
+and the chance of persistence flattens out around 0.21 instead of
+continuing to zero. Neither curve is wrong; they encode different
+assumptions about whether the observation process was stationary. A
+record with a long history of *consistently frequent* sightings up to the
+last one would show the two curves converge, since sighting effort would
+look roughly constant throughout.
+
+### Why Robson & Whitlock (1964) gives such a late estimate here
+
+Robson & Whitlock only look at the two most recent sighting times, 1933
+and 1936. A 3-year gap scaled by `(1 - 0.05) / 0.05 = 19` places the
+estimate at `1936 + 3 * 19 = 1993`. This estimator is sensitive to the
+specific spacing of the last two observations, and can be pulled far in
+either direction by a single unusually short or long final gap. It is
+best read alongside an estimator like `ole()` that draws on the entire
+sighting history rather than just the last interval.
+
+## Choosing among the estimators
+
+There is no single correct estimator for every record. As a starting
+point:
+
+- If the record is long and reasonably well sampled throughout, `ole()`
+  gives a point estimate with an interval and uses the most information.
+- If sighting effort clearly declined over time, prefer `solow2005()`
+  over `solow1993()`; both answer "is persistence still plausible", not
+  "when did extinction occur".
+- If only the endpoints and total count are available, `strauss1989()` is
+  the minimal-assumption option.
+- `robson1964()` is cheap to compute but rests entirely on the last
+  interval; treat it as a sanity check, not a primary estimate.
+- `burgman1995()` makes the weakest distributional assumption but is the
+  slowest, since it evaluates an inclusion-exclusion sum for every
+  candidate year.
+
+In practice, running more than one estimator and checking whether they
+agree is informative in itself: sharp disagreement, as in the Solow
+comparison above, usually points to a specific feature of the record
+(here, declining sighting effort) rather than to a flaw in either method.
+
+## References
+
+Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat from
+scientific collections. *Conservation Biology*, 9(4), 923-928.
+
+Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the
+dodo become extinct? *Nature*, 426(6964), 245.
+
+Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation
+point. *Biometrika*, 51(1/2), 33-39.
+
+Solow, A. R. (1993). Inferring extinction from sighting data. *Ecology*,
+74(3), 962-964.
+
+Solow, A. R. (2005). Inferring extinction from a sighting record.
+*Mathematical Biosciences*, 195(1), 47-55.
+
+Strauss, D., & Sadler, P. M. (1989). Classical confidence intervals and
+Bayesian probability estimates for ends of local taxon ranges.
+*Mathematical Geology*, 21(4), 411-427.
