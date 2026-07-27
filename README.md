@@ -1,6 +1,6 @@
 # EDE
 
-[![CRAN status](https://www.r-pkg.org/badges/version/EDE)](https://CRAN.R-project.org/package=EDE) &nbsp; [![R-CMD-check](https://github.com/rodrigosqrt3/EDE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rodrigosqrt3/EDE/actions/workflows/R-CMD-check.yaml) &nbsp; [![codecov](https://codecov.io/gh/rodrigosqrt3/EDE/branch/main/graph/badge.svg)](https://codecov.io/gh/rodrigosqrt3/EDE)
+[![CRAN status](https://www.r-pkg.org/badges/version/EDE)](https://CRAN.R-project.org/package=EDE) &nbsp; [![R-CMD-check](https://github.com/rodrigosqrt3/EDE/actions/workflows/R-CMD-r.yaml/badge.svg)](https://github.com/rodrigosqrt3/EDE/actions/workflows/R-CMD-r.yaml) &nbsp; [![codecov](https://codecov.io/gh/rodrigosqrt3/EDE/branch/main/graph/badge.svg)](https://codecov.io/gh/rodrigosqrt3/EDE)
 
 Extinction date estimation from sighting records.
 
