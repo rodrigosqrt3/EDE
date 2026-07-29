@@ -29,8 +29,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0)
-Imports:
-    stats
 Suggests:
     testthat (>= 3.0.0),
     knitr,
