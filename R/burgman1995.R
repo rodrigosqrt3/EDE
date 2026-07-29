@@ -74,7 +74,6 @@ burgman_equation4_pvalue <- function(ct, n, r) {
 
   for (j in seq_len(min(n, ct))) {
     s_nj <- s_mat[n, j]
-    if (s_nj == 0) next
 
     k_max <- min(j + 1, floor((ct - j) / r))
     if (k_max < 1) next
@@ -110,7 +109,6 @@ burgman_chance <- function(d) {
   if (n == 0 || ct == 0) return(1.0)
 
   nz_indices <- which(count_vec > 0)
-  if (length(nz_indices) == 0) return(1.0)
 
   gap_start <- nz_indices[1] - 1
   gaps_mid  <- if (length(nz_indices) > 1) diff(nz_indices) - 1 else 0

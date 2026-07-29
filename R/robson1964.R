@@ -5,7 +5,9 @@
 #' true endpoint behaves like the tail of a uniform record process.
 #'
 #' @param sd A [sighting_data] object.
-#' @param alpha Significance level for the upper confidence bound, in (0, 1).
+#' @param alpha Significance level, in (0, 1). Not a coverage-calibrated CI
+#'   here: it directly scales the extrapolated gap, following the original
+#'   formula, so there is no `lower`/`upper` in the returned estimate.
 #'
 #' @return An [ede_estimate] object.
 #'
@@ -25,8 +27,7 @@ robson1964 <- function(sd, alpha = 0.05) {
   }
 
   gap <- times[n] - times[n - 1]
-  estimate <- times[n] + gap
-  upper <- times[n] + gap * (1 - alpha) / alpha
+  estimate <- times[n] + gap * (1 - alpha) / alpha
 
-  new_ede_estimate(estimate, lower = times[n], upper = upper, method = "Robson & Whitlock (1964)", alpha = alpha)
+  new_ede_estimate(estimate, lower = NA_real_, upper = NA_real_, method = "Robson & Whitlock (1964)", alpha = alpha)
 }

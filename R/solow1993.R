@@ -1,3 +1,4 @@
+
 #' Solow (1993) nonparametric persistence test
 #'
 #' Nonparametric test of the null hypothesis that a species was still extant
@@ -9,8 +10,7 @@
 #' @param alpha Significance level, in (0, 1). Persistence is rejected for
 #'   the first candidate year at which the chance of persistence falls to
 #'   or below `alpha`.
-#' @param test_year Latest year to test. Must be later than the last
-#'   sighting.
+#' @param test_year Latest year to test. Must be supplied as a number.
 #' @param data_out If `TRUE`, return the full chance-of-persistence curve
 #'   instead of the single first-rejection year.
 #'
@@ -29,6 +29,8 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
     stop("`test_year` must be supplied as a number.", call. = FALSE)
   }
 
+  full <- expand_record(sd, test_year)
+
   times <- sort(unique(sd$time[sd$count > 0]))
   n_total <- sum(sd$count[sd$count > 0])
   if (n_total < 2) {
@@ -42,14 +44,13 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
   }
 
   tn <- last_sight - t1
-  n_used <- n_total - 1
 
   candidates <- seq(last_sight + 1, test_year)
-  chance <- (tn / (candidates - t1))^n_used
+  chance <- (tn / (candidates - t1))^n_total
 
   if (data_out) return(data.frame(time = candidates, chance = chance))
 
-  t_needed <- ceiling(tn / (alpha^(1 / n_used)))
+  t_needed <- ceiling(tn / (alpha^(1 / n_total)))
   est_year <- t1 + t_needed
 
   if (est_year > test_year) {
@@ -61,4 +62,15 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
   }
 
   new_ede_estimate(est_year, method = "Solow (1993)", alpha = alpha)
+}
+
+#' @keywords internal
+#' @noRd
+solow1993_chance <- function(d) {
+  tmin <- min(d$time)
+  tn <- max(d$time[d$count > 0]) - tmin
+  tmax <- max(d$time) - tmin
+  n <- sum(d$count)
+  if (tmax <= 0) return(1.0)
+  (tn / tmax)^n
 }

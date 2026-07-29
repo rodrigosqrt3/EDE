@@ -47,3 +47,12 @@ test_that("burgman1995 warns and returns NA with a single candidate year", {
   )
   expect_true(is.na(res$estimate))
 })
+
+test_that("burgman internal helper functions handle edge cases", {
+  expect_equal(EDE:::burgman_equation4_pvalue(ct = 10, n = 0, r = 2), 1.0)
+  expect_equal(EDE:::burgman_equation4_pvalue(ct = 10, n = 5, r = 0), 1.0)
+  expect_equal(EDE:::burgman_equation4_pvalue(ct = 10, n = 5, r = 10), 1.0)
+  expect_equal(EDE:::burgman_equation4_pvalue(ct = 10, n = 5, r = 7), 0.00876, tolerance = 1e-5)
+  d_zero <- data.frame(time = 1900:1905, count = rep(0, 6))
+  expect_equal(EDE:::burgman_chance(d_zero), 1.0)
+})

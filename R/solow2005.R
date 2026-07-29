@@ -23,11 +23,13 @@ solow2005 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
   }
 
   full <- expand_record(sd, test_year)
+
   last_sight <- max(sd$time[sd$count > 0])
-  candidates <- full$time[full$time > last_sight]
-  if (length(candidates) == 0L) {
+  if (test_year <= last_sight) {
     stop("`test_year` must be later than the last sighting.", call. = FALSE)
   }
+
+  candidates <- full$time[full$time > last_sight]
 
   chance <- vapply(candidates, function(t) {
     solow2005_chance(full[full$time <= t, , drop = FALSE])
@@ -49,11 +51,11 @@ solow2005 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
 #' @keywords internal
 #' @noRd
 solow2005_survival_series <- function(y, n) {
-  if (y <= 0) return(0)
+  if (is.na(y) || is.nan(y) || y <= 0 || !is.finite(y)) return(0)
   n_terms <- floor(1 / y)
-  if (n_terms <= 0) return(1)
+  if (n_terms <= 0 || !is.finite(n_terms)) return(1)
 
-  i <- seq_len(min(n_terms, n))
+  i <- seq_len(min(as.integer(n_terms), as.integer(n)))
   terms <- (-1)^(i - 1) * choose(n, i) * (1 - i * y)^(n - 1)
   1 - sum(terms)
 }
@@ -65,16 +67,13 @@ solow2005_chance <- function(d) {
   s <- sum(year * d$count)
   tn <- max(year[d$count > 0])
   tmax <- max(year)
+  n <- sum(d$count)
 
-  n_total <- sum(d$count[d$count > 0])
-  n_used <- n_total - 1
+  if (s == 0 || n < 1) return(1.0)
 
-  if (s == 0 || n_used < 1) return(1.0)
+  fs1 <- solow2005_survival_series(tn / s, n)
+  fs2 <- solow2005_survival_series(tmax / s, n)
 
-  fs1 <- solow2005_survival_series(tn / s, n_used)
-  fs2 <- solow2005_survival_series(tmax / s, n_used)
-
-  if (fs2 <= 0) return(1.0)
   p <- fs1 / fs2
   max(0, min(1, p))
 }

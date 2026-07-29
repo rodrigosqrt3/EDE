@@ -80,3 +80,17 @@ test_that("solow2005_survival_series handles y >= 1 (empty inclusion-exclusion s
   expect_equal(solow2005_survival_series(1.5, 3), 1)
   expect_equal(solow2005_survival_series(0.3, 3), 0, tolerance = 1e-10)
 })
+
+test_that("solow2005 internal helper functions handle edge cases", {
+  expect_equal(EDE:::solow2005_survival_series(0, 3), 0)
+  expect_equal(EDE:::solow2005_survival_series(-1, 3), 0)
+
+  d_single <- data.frame(time = 1900, count = 5)
+  expect_equal(EDE:::solow2005_chance(d_single), 1.0)
+
+  d_large <- data.frame(time = c(1900, 1901, 1902), count = c(1, 100, 100))
+  expect_equal(EDE:::solow2005_chance(d_large), 1.0)
+
+  d_fs2 <- data.frame(time = c(1900, 1910), count = c(1, 20))
+  expect_equal(EDE:::solow2005_chance(d_fs2), 1.0)
+})
