@@ -17,7 +17,7 @@ When a species has not been reliably sighted for a long time, two
 questions follow: is it still extant, and if not, when did it most likely
 disappear. Both questions can be addressed from the sighting record alone,
 without additional biological data, if a null model of the sighting
-process is assumed. This vignette summarizes the six estimators
+process is assumed. This vignette summarizes the seven estimators
 implemented in EDE, applies them to a single worked example, and discusses
 where and why they disagree.
 
@@ -67,6 +67,12 @@ a candidate year. Simple, and does not require knowing when in the window
 each sighting occurred beyond the last one, but treats sighting effort as
 constant over time.
 
+**Solow (1993b).** A persistence test specifically designed for declining
+populations. Assumes sightings follow a non-stationary Poisson process
+with an exponentially decreasing rate function, using Fisher's gap
+distribution to test whether recent absence reflects extinction or
+population decline.
+
 **Solow (2005).** The same logic as Solow (1993), but the observation
 window is weighted by cumulative sighting effort (sighting count times
 time since the first sighting) instead of raw elapsed time. This matters
@@ -79,12 +85,12 @@ what is the probability that the largest observed gap between sightings
 would not exceed the gap actually seen. Computed via an
 inclusion-exclusion argument over Stirling numbers of the second kind.
 Makes no distributional assumption beyond uniform placement, at the cost
-of being the most computationally expensive of the six.
+of being the most computationally expensive of the seven.
 
-`solow1993()`, `solow2005()`, and `burgman1995()` all return either the
-first candidate year at which the chance of persistence drops to or below
-`alpha`, or, with `data_out = TRUE`, the full curve of chance against
-candidate year.
+`solow1993()`, `solow1993b()`, `solow2005()`, and `burgman1995()` all return
+either the first candidate year at which the chance of persistence drops to
+or below `alpha`, or, with `data_out = TRUE`, the full curve of chance
+against candidate year.
 
 ## A worked example
 
@@ -108,13 +114,14 @@ The last confirmed sighting is 1936. Sighting frequency was already
 declining well before that: the median gap between sightings is 2 years
 up to 1915, and grows to 3 years afterward.
 
-### Running all six estimators
+### Running all seven estimators
 
 ```{r}
 ole(sd)
 robson1964(sd)
 strauss1989(sd)
 solow1993(sd, test_year = 2000)
+solow1993b(sd, test_year = 2000)
 solow2005(sd, test_year = 2000)
 burgman1995(sd, test_year = 2000)
 ```
@@ -125,6 +132,7 @@ burgman1995(sd, test_year = 2000)
 | Strauss & Sadler (1989) | 1943.4, CI [1936.0, 1943.4] | uses only the range (1900-1936) and the sighting count |
 | Roberts & Solow (2003) | 1944.0, CI [1937.5, 1956.8] | uses the full spacing of all 17 sighting times |
 | Solow (1993) | 1940 | first year the persistence chance drops below 0.05, weighting the window by elapsed time |
+| Solow (1993b) | 1938 | test for declining populations under exponential rate reduction |
 | Solow (2005) | not rejected by 2000 | same test, weighted by sighting effort instead |
 | Burgman, Grimson & Ferson (1995) | 1944 | first year the gap-occupancy chance drops below 0.05, on a decreasing run |
 
@@ -172,9 +180,9 @@ point:
 
 - If the record is long and reasonably well sampled throughout, `ole()`
   gives a point estimate with an interval and uses the most information.
-- If sighting effort clearly declined over time, prefer `solow2005()`
-  over `solow1993()`; both answer "is persistence still plausible", not
-  "when did extinction occur".
+- If sighting effort clearly declined over time, prefer `solow1993b()` or
+  `solow2005()` over `solow1993()`; both answer "is persistence still
+  plausible", not "when did extinction occur".
 - If only the endpoints and total count are available, `strauss1989()` is
   the minimal-assumption option.
 - `robson1964()` is cheap to compute but rests entirely on the last
@@ -201,6 +209,9 @@ point. *Biometrika*, 51(1/2), 33-39.
 
 Solow, A. R. (1993). Inferring extinction from sighting data. *Ecology*,
 74(3), 962-964.
+
+Solow, A. R. (1993b). Inferring extinction in a declining population.
+*Journal of Mathematical Biology*, 32(1), 79-82.
 
 Solow, A. R. (2005). Inferring extinction from a sighting record.
 *Mathematical Biosciences*, 195(1), 47-55.
