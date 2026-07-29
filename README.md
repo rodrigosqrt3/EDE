@@ -42,7 +42,7 @@ The last confirmed sighting is 1936. No sightings were recorded afterward.
 ole(sd)
 #> <OLE (Roberts & Solow 2003)>
 #>   estimate: 1940.63
-#>   95% CI: [1936.33, 1953.96]
+#>   95\% CI: [1936.33, 1953.96]
 
 robson1964(sd)
 #> <Robson & Whitlock (1964)>
