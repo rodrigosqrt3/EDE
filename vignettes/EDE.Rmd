@@ -132,7 +132,7 @@ burgman1995(sd, test_year = 2000)
 | Strauss & Sadler (1989) | 1943.4, CI [1936.0, 1943.4] | uses only the range (1900-1936) and the sighting count |
 | Roberts & Solow (2003) | 1944.0, CI [1937.5, 1956.8] | uses the full spacing of all 17 sighting times |
 | Solow (1993) | 1940 | first year the persistence chance drops below 0.05, weighting the window by elapsed time |
-| Solow (1993b) | 1938 | test for declining populations under exponential rate reduction |
+| Solow (1993b) | not rejected by 2000 | test for declining populations; chance flattens around 0.21 |
 | Solow (2005) | not rejected by 2000 | same test, weighted by sighting effort instead |
 | Burgman, Grimson & Ferson (1995) | 1944 | first year the gap-occupancy chance drops below 0.05, on a decreasing run |
 
