@@ -49,11 +49,13 @@ solow2005 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
 #' @keywords internal
 #' @noRd
 solow2005_survival_series <- function(y, n) {
+  if (y <= 0) return(0)
   n_terms <- floor(1 / y)
   if (n_terms <= 0) return(1)
-  i <- seq_len(n_terms)
-  dummy <- sum((-1)^(i - 1) * choose(n, i) * (1 - i * y)^(n - 1))
-  1 - dummy
+
+  i <- seq_len(min(n_terms, n))
+  terms <- (-1)^(i - 1) * choose(n, i) * (1 - i * y)^(n - 1)
+  1 - sum(terms)
 }
 
 #' @keywords internal
@@ -63,8 +65,16 @@ solow2005_chance <- function(d) {
   s <- sum(year * d$count)
   tn <- max(year[d$count > 0])
   tmax <- max(year)
-  n <- sum(d$count)
-  fs1 <- solow2005_survival_series(tn / s, n)
-  fs2 <- solow2005_survival_series(tmax / s, n)
-  fs1 / fs2
+
+  n_total <- sum(d$count[d$count > 0])
+  n_used <- n_total - 1
+
+  if (s == 0 || n_used < 1) return(1.0)
+
+  fs1 <- solow2005_survival_series(tn / s, n_used)
+  fs2 <- solow2005_survival_series(tmax / s, n_used)
+
+  if (fs2 <= 0) return(1.0)
+  p <- fs1 / fs2
+  max(0, min(1, p))
 }

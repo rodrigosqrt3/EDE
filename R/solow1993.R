@@ -29,36 +29,36 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
     stop("`test_year` must be supplied as a number.", call. = FALSE)
   }
 
-  full <- expand_record(sd, test_year)
-  last_sight <- max(sd$time[sd$count > 0])
-  candidates <- full$time[full$time > last_sight]
-  if (length(candidates) == 0L) {
+  times <- sort(unique(sd$time[sd$count > 0]))
+  n_total <- sum(sd$count[sd$count > 0])
+  if (n_total < 2) {
+    stop("Solow (1993) needs at least 2 sightings with count > 0.", call. = FALSE)
+  }
+
+  t1 <- times[1]
+  last_sight <- times[length(times)]
+  if (test_year <= last_sight) {
     stop("`test_year` must be later than the last sighting.", call. = FALSE)
   }
 
-  chance <- vapply(candidates, function(t) {
-    solow1993_chance(full[full$time <= t, , drop = FALSE])
-  }, numeric(1))
+  tn <- last_sight - t1
+  n_used <- n_total - 1
+
+  candidates <- seq(last_sight + 1, test_year)
+  chance <- (tn / (candidates - t1))^n_used
 
   if (data_out) return(data.frame(time = candidates, chance = chance))
 
-  below <- candidates[chance <= alpha]
-  if (length(below) == 0L) {
+  t_needed <- ceiling(tn / (alpha^(1 / n_used)))
+  est_year <- t1 + t_needed
+
+  if (est_year > test_year) {
     warning(
       "chance of persistence never falls to alpha before `test_year`; ",
       "returning NA.", call. = FALSE
     )
     return(new_ede_estimate(NA_real_, method = "Solow (1993)", alpha = alpha))
   }
-  new_ede_estimate(below[1], method = "Solow (1993)", alpha = alpha)
-}
 
-#' @keywords internal
-#' @noRd
-solow1993_chance <- function(d) {
-  tmin <- min(d$time)
-  tn <- max(d$time[d$count > 0]) - tmin
-  tmax <- max(d$time) - tmin
-  n <- sum(d$count)
-  (tn / tmax)^n
+  new_ede_estimate(est_year, method = "Solow (1993)", alpha = alpha)
 }

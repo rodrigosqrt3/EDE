@@ -5,9 +5,7 @@
 #' true endpoint behaves like the tail of a uniform record process.
 #'
 #' @param sd A [sighting_data] object.
-#' @param alpha Significance level, in (0, 1). Not a coverage-calibrated CI
-#'   here: it directly scales the extrapolated gap, following the original
-#'   formula, so there is no `lower`/`upper` in the returned estimate.
+#' @param alpha Significance level for the upper confidence bound, in (0, 1).
 #'
 #' @return An [ede_estimate] object.
 #'
@@ -20,14 +18,15 @@ robson1964 <- function(sd, alpha = 0.05) {
   stopifnot(inherits(sd, "sighting_data"))
   if (alpha <= 0 || alpha >= 1) stop("`alpha` must be in (0, 1).", call. = FALSE)
 
-  times <- sort(sd$time[sd$count > 0])
+  times <- sort(unique(sd$time[sd$count > 0]))
   n <- length(times)
   if (n < 2) {
-    stop("Robson & Whitlock (1964) needs at least 2 sighting times with count > 0.", call. = FALSE)
+    stop("Robson & Whitlock (1964) needs at least 2 distinct sighting times with count > 0.", call. = FALSE)
   }
 
   gap <- times[n] - times[n - 1]
-  estimate <- times[n] + gap * (1 - alpha) / alpha
+  estimate <- times[n] + gap
+  upper <- times[n] + gap * (1 - alpha) / alpha
 
-  new_ede_estimate(estimate, NA_real_, NA_real_, method = "Robson & Whitlock (1964)", alpha = alpha)
+  new_ede_estimate(estimate, lower = times[n], upper = upper, method = "Robson & Whitlock (1964)", alpha = alpha)
 }
