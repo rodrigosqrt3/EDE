@@ -1,4 +1,3 @@
-
 #' Solow (1993) nonparametric persistence test
 #'
 #' Nonparametric test of the null hypothesis that a species was still extant
@@ -43,13 +42,14 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
     stop("`test_year` must be later than the last sighting.", call. = FALSE)
   }
 
-  tn <- last_sight - t1
-
-  candidates <- seq(last_sight + 1, test_year)
-  chance <- (tn / (candidates - t1))^n_total
+  candidates <- full$time[full$time > last_sight]
+  chance <- vapply(candidates, function(t) {
+    solow1993_chance(full[full$time <= t, , drop = FALSE])
+  }, numeric(1))
 
   if (data_out) return(data.frame(time = candidates, chance = chance))
 
+  tn <- last_sight - t1
   t_needed <- ceiling(tn / (alpha^(1 / n_total)))
   est_year <- t1 + t_needed
 

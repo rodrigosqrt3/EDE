@@ -94,3 +94,9 @@ test_that("solow2005 internal helper functions handle edge cases", {
   d_fs2 <- data.frame(time = c(1900, 1910), count = c(1, 20))
   expect_equal(EDE:::solow2005_chance(d_fs2), 1.0)
 })
+
+test_that("solow1993 internal helper functions and edge cases handle single sightings", {
+  d_single <- data.frame(time = 1900, count = 1)
+  expect_error(solow1993(sighting_data(d_single), alpha = 0.05, test_year = 2000), "at least 2")
+  expect_equal(EDE:::solow1993_chance(d_single), 1.0)
+})

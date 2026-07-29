@@ -24,3 +24,8 @@ test_that("ole validates alpha", {
   expect_error(ole(sd, alpha = 0), "must be in \\(0, 1\\)")
   expect_error(ole(sd, alpha = 1), "must be in \\(0, 1\\)")
 })
+
+test_that("ole rejects datasets where T1 equals T2", {
+  d_dup <- data.frame(time = c(1900, 1910, 1920), count = c(1, 1, 2))
+  expect_error(ole(sighting_data(d_dup)), "strictly greater")
+})
