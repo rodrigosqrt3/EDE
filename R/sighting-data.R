@@ -7,7 +7,9 @@
 #'
 #' @param data A data frame or matrix. By default the first column is read
 #'   as time (e.g. year) and the second as the number of sightings recorded
-#'   at that time.
+#'   at that time. The earliest supplied time defines the observation origin;
+#'   include an initial zero-count row when observation began before the first
+#'   sighting.
 #' @param time_col,count_col Column name or position for time and sighting
 #'   count.
 #'
@@ -29,11 +31,14 @@ sighting_data <- function(data, time_col = 1L, count_col = 2L) {
   if (!is.numeric(time) || !is.numeric(count)) {
     stop("time and count columns must be numeric.", call. = FALSE)
   }
-  if (anyNA(time) || anyNA(count)) {
-    stop("time and count columns cannot contain NA.", call. = FALSE)
+  if (anyNA(time) || anyNA(count) || any(!is.finite(time)) || any(!is.finite(count))) {
+    stop("time and count columns must contain finite, non-missing values.", call. = FALSE)
   }
-  if (any(time < 0) || any(count < 0)) {
-    stop("time and count cannot be negative.", call. = FALSE)
+  if (any(count < 0)) {
+    stop("sighting counts cannot be negative.", call. = FALSE)
+  }
+  if (any(count != floor(count))) {
+    stop("sighting counts must be whole numbers.", call. = FALSE)
   }
   if (anyDuplicated(time)) {
     stop(
@@ -42,14 +47,6 @@ sighting_data <- function(data, time_col = 1L, count_col = 2L) {
       call. = FALSE
     )
   }
-  if (max(count) > max(time)) {
-    warning(
-      "sighting counts are larger than any time value; check that ",
-      "time_col/count_col point at the right columns.",
-      call. = FALSE
-    )
-  }
-
   ord <- order(time)
   out <- data.frame(time = time[ord], count = count[ord])
   class(out) <- c("sighting_data", class(out))
@@ -67,15 +64,16 @@ sighting_data <- function(data, time_col = 1L, count_col = 2L) {
 #' @keywords internal
 #' @noRd
 expand_record <- function(sd, end_time) {
-  sd <- sd[sd$count > 0, , drop = FALSE]
-  if (nrow(sd) == 0L) stop("no sightings with count > 0.", call. = FALSE)
-  if (end_time < sd$time[1]) {
+  if (!any(sd$count > 0)) stop("no sightings with count > 0.", call. = FALSE)
+  start_time <- min(sd$time)
+  last_sighting <- max(sd$time[sd$count > 0])
+  if (end_time < start_time) {
     stop("`end_time` cannot precede the first sighting.", call. = FALSE)
   }
-  if (end_time < sd$time[nrow(sd)]) {
+  if (end_time < last_sighting) {
     stop("`end_time`/`test_year` must be later than the last sighting.", call. = FALSE)
   }
-  time <- seq(sd$time[1], end_time)
+  time <- seq(start_time, end_time)
   count <- rep(0, length(time))
   count[match(sd$time, time)] <- sd$count
   data.frame(time = time, count = count)

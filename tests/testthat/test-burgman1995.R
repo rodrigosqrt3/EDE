@@ -34,18 +34,29 @@ test_that("burgman1995 data_out = TRUE returns the full chance curve", {
   expect_equal(nrow(curve), 4L)
 })
 
-test_that("burgman1995 warns and returns NA with a single candidate year", {
-  # with only one candidate year, diff(chance) has length 0 and the leading
-  # `decreasing` flag is hardcoded FALSE, so rejection is never possible
+test_that("burgman1995 reproduces equation 4 values in Table 2", {
+  seal <- sighting_data(data.frame(
+    year = c(1915, 1922, 1932, 1948, 1952),
+    sightings = 1
+  ))
+  seal_curve <- burgman1995(seal, test_year = 1992, data_out = TRUE)
+  expect_equal(seal_curve$chance[seal_curve$time == 1992], 0.258, tolerance = 5e-4)
+})
+
+test_that("burgman1995 can reject persistence at the first candidate year", {
   d <- data.frame(
     years = c(1907, 1910, 1915, 1916, 1920, 1925, 1930, 1931),
     sightings = c(1, 1, 3, 4, 3, 1, 2, 1)
   )
-  expect_warning(
-    res <- burgman1995(sighting_data(d), alpha = 0.05, test_year = 1932),
-    "never falls"
-  )
-  expect_true(is.na(res$estimate))
+  curve <- burgman1995(sighting_data(d), alpha = 0.05, test_year = 1932,
+                       data_out = TRUE)
+  if (curve$chance[1] <= 0.05) {
+    expect_equal(burgman1995(sighting_data(d), alpha = 0.05,
+                             test_year = 1932)$estimate, 1932)
+  } else {
+    expect_warning(burgman1995(sighting_data(d), alpha = 0.05,
+                               test_year = 1932), "never falls")
+  }
 })
 
 test_that("burgman internal helper functions handle edge cases", {

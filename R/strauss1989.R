@@ -1,17 +1,14 @@
 #' Strauss & Sadler (1989) confidence interval for the end of a range
 #'
-#' Classical confidence interval for the true endpoint of a temporal range,
-#' derived from the distribution of the sample range under a uniform
-#' occurrence model. Originally developed for stratigraphic ranges, applied
-#' here to sighting records.
+#' Unbiased point estimator and classical confidence interval for the true
+#' endpoint of a temporal range, derived from the distribution of the sample
+#' range under a uniform occurrence model.
 #'
 #' @param sd A [sighting_data] object.
 #' @param alpha Significance level, in (0, 1).
 #'
-#' @return An [ede_estimate] object. Only `upper` is defined: the method
-#'   gives a one-sided bound on how much later than the last sighting
-#'   extinction could plausibly have occurred, not a point estimate with a
-#'   two-sided interval.
+#' @return An [ede_estimate] object containing the unbiased point estimate and
+#'   a one-sided confidence interval.
 #'
 #' @references
 #' Strauss, D., & Sadler, P. M. (1989). Classical confidence intervals and
@@ -31,9 +28,12 @@ strauss1989 <- function(sd, alpha = 0.05) {
 
   range_r <- max(times) - min(times)
   b <- alpha^(-1 / (h - 1)) - 1
-  estimate <- max(times) + b * range_r
+  estimate <- max(times) + range_r / (h - 1)
+  upper <- max(times) + b * range_r
 
-  new_ede_estimate(estimate, lower = max(times), upper = estimate, method = "Strauss & Sadler (1989)", alpha = alpha)
+  new_ede_estimate(estimate, lower = max(times), upper = upper,
+                   method = "Strauss & Sadler (1989)", alpha = alpha,
+                   interval_type = "one-sided")
 }
 
 #' Full confidence curve for the Strauss & Sadler (1989) estimator

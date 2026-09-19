@@ -1,10 +1,12 @@
-test_that("robson1964 reproduces the reference point estimate when the last gap is 1", {
+test_that("robson1964 separates the point estimate from the upper confidence bound", {
   d <- data.frame(
     years = c(1907, 1910, 1915, 1916, 1920, 1925, 1930, 1931),
     sightings = c(1, 1, 3, 4, 3, 1, 2, 1)
   )
   res <- robson1964(sighting_data(d), alpha = 0.05)
-  expect_equal(res$estimate, 1950)
+  expect_equal(res$estimate, 1932)
+  expect_equal(res$lower, 1931)
+  expect_equal(res$upper, 1950)
 })
 
 test_that("robson1964 uses the real gap between the last two sightings", {
@@ -15,9 +17,8 @@ test_that("robson1964 uses the real gap between the last two sightings", {
   d <- data.frame(years = c(1900, 1905, 1910, 1920, 1935), sightings = c(2, 1, 3, 1, 1))
   res <- robson1964(sighting_data(d), alpha = 0.05)
 
-  expected <- 1935 + 15 * (1 - 0.05) / 0.05
-  expect_equal(res$estimate, expected)
-  expect_false(isTRUE(all.equal(res$estimate, 1954)))
+  expect_equal(res$estimate, 1950)
+  expect_equal(res$upper, 1935 + 15 * (1 - 0.05) / 0.05)
 })
 
 test_that("robson1964 validates alpha and minimum n", {

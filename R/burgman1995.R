@@ -1,10 +1,10 @@
 #' Burgman, Grimson & Ferson (1995) combinatorial persistence test
 #'
 #' Computes the probability that, if sighting events were distributed
-#' uniformly at random over the candidate observation window, the largest
-#' observed gap between sightings would not exceed the gap actually seen in
-#' the data. Uses an inclusion-exclusion (Stirling-number) argument on the
-#' occupancy of time bins by sighting events.
+#' uniformly at random over the candidate observation window, a run of empty
+#' periods at least as long as the largest observed run would occur. Uses an
+#' inclusion-exclusion (Stirling-number) argument on the occupancy of time bins
+#' by sighting events (equation 4 of the source paper).
 #'
 #' @inheritParams solow1993
 #'
@@ -36,11 +36,10 @@ burgman1995 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
 
   if (data_out) return(data.frame(time = candidates, chance = chance))
 
-  decreasing <- c(FALSE, diff(chance) < 0)
-  below <- candidates[decreasing & chance <= alpha]
+  below <- candidates[chance <= alpha]
   if (length(below) == 0L) {
     warning(
-      "chance of persistence never falls to alpha (on a decreasing run) ",
+      "p-value never falls to alpha ",
       "before `test_year`; returning NA.", call. = FALSE
     )
     return(new_ede_estimate(NA_real_, method = "Burgman, Grimson & Ferson (1995)", alpha = alpha))
@@ -100,6 +99,9 @@ burgman_equation4_pvalue <- function(ct, n, r) {
 #' @keywords internal
 #' @noRd
 burgman_chance <- function(d) {
+  # The first period defines the conditioned observation origin and is not
+  # part of the sequence tested by Burgman et al. (1995, Fig. 1).
+  d <- d[d$time > min(d$time), , drop = FALSE]
   time_vec <- d$time
   count_vec <- d$count
 

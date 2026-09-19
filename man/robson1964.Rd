@@ -9,17 +9,16 @@ robson1964(sd, alpha = 0.05)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Not a coverage-calibrated CI
-here: it directly scales the extrapolated gap, following the original
-formula, so there is no \code{lower}/\code{upper} in the returned estimate.}
+\item{alpha}{Significance level, in (0, 1), for the approximate one-sided
+confidence interval.}
 }
 \value{
 An \link{ede_estimate} object.
 }
 \description{
-Extrapolates the extinction date from the gap between the two most recent
-sighting times, under the assumption that the sighting process near the
-true endpoint behaves like the tail of a uniform record process.
+Estimates the extinction date by jackknife bias correction of the most
+recent sighting. If the two most recent distinct sighting times are
+\code{t[n-1]} and \code{t[n]}, the estimate is \code{t[n] + (t[n] - t[n-1])}.
 }
 \references{
 Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation

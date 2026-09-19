@@ -4,12 +4,16 @@
 \alias{ole}
 \title{Optimal Linear Estimation of extinction date}
 \usage{
-ole(sd, alpha = 0.05)
+ole(sd, alpha = 0.05, k = NULL)
 }
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
 \item{alpha}{Significance level for the confidence interval, in (0, 1).}
+
+\item{k}{Number of most recent sighting events to use. Counts greater than
+one are treated as independent events at the recorded time. By default,
+all sighting events are used. Must be at least 3.}
 }
 \value{
 An \link{ede_estimate} object.
@@ -23,4 +27,6 @@ largest order statistics.
 \references{
 Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the
 dodo become extinct? Nature, 426(6964), 245.
+Solow, A. R. (2005). Inferring extinction from a sighting record.
+Mathematical Biosciences, 195(1), 47-55.
 }

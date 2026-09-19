@@ -16,11 +16,11 @@
 #'
 #' @param sd A [sighting_data] object.
 #' @param alpha Significance level, in (0, 1). Persistence is rejected for
-#'   the first candidate year at which the chance of persistence falls to
+#'   the first candidate year at which the p-value falls to
 #'   or below `alpha`.
 #' @param test_year Latest year to test. Must be later than the last
 #'   sighting.
-#' @param data_out If `TRUE`, return the full chance-of-persistence curve
+#' @param data_out If `TRUE`, return the full p-value curve
 #'   instead of the single first-rejection year.
 #'
 #' @return An [ede_estimate] object, or (if `data_out = TRUE`) a data frame
@@ -75,7 +75,7 @@ mcinerny2006 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
   below <- candidates[chance <= alpha]
   if (length(below) == 0L) {
     warning(
-      "chance of persistence never falls to alpha before `test_year`; ",
+      "p-value never falls to alpha before `test_year`; ",
       "returning NA.", call. = FALSE
     )
     return(new_ede_estimate(NA_real_, method = "McInerny, Roberts, Davy & Cribb (2006)", alpha = alpha))

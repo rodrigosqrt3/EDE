@@ -1,13 +1,12 @@
 #' Robson & Whitlock (1964) truncation point estimator
 #'
-#' Extrapolates the extinction date from the gap between the two most recent
-#' sighting times, under the assumption that the sighting process near the
-#' true endpoint behaves like the tail of a uniform record process.
+#' Estimates the extinction date by jackknife bias correction of the most
+#' recent sighting. If the two most recent distinct sighting times are
+#' `t[n-1]` and `t[n]`, the estimate is `t[n] + (t[n] - t[n-1])`.
 #'
 #' @param sd A [sighting_data] object.
-#' @param alpha Significance level, in (0, 1). Not a coverage-calibrated CI
-#'   here: it directly scales the extrapolated gap, following the original
-#'   formula, so there is no `lower`/`upper` in the returned estimate.
+#' @param alpha Significance level, in (0, 1), for the approximate one-sided
+#'   confidence interval.
 #'
 #' @return An [ede_estimate] object.
 #'
@@ -27,7 +26,10 @@ robson1964 <- function(sd, alpha = 0.05) {
   }
 
   gap <- times[n] - times[n - 1]
-  estimate <- times[n] + gap * (1 - alpha) / alpha
+  estimate <- times[n] + gap
+  upper <- times[n] + gap * (1 - alpha) / alpha
 
-  new_ede_estimate(estimate, lower = NA_real_, upper = NA_real_, method = "Robson & Whitlock (1964)", alpha = alpha)
+  new_ede_estimate(estimate, lower = times[n], upper = upper,
+                   method = "Robson & Whitlock (1964)", alpha = alpha,
+                   interval_type = "one-sided")
 }

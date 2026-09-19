@@ -2,7 +2,7 @@
 % Please edit documentation in R/solow1993.R
 \name{solow1993}
 \alias{solow1993}
-\title{Solow (1993) nonparametric persistence test}
+\title{Solow (1993) constant-rate persistence test}
 \usage{
 solow1993(sd, alpha = 0.05, test_year, data_out = FALSE)
 }
@@ -10,12 +10,12 @@ solow1993(sd, alpha = 0.05, test_year, data_out = FALSE)
 \item{sd}{A \link{sighting_data} object.}
 
 \item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the chance of persistence falls to
+the first candidate year at which the p-value falls to
 or below \code{alpha}.}
 
 \item{test_year}{Latest year to test. Must be supplied as a number.}
 
-\item{data_out}{If \code{TRUE}, return the full chance-of-persistence curve
+\item{data_out}{If \code{TRUE}, return the full p-value curve
 instead of the single first-rejection year.}
 }
 \value{
@@ -23,10 +23,8 @@ An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
 with columns \code{time} and \code{chance}.
 }
 \description{
-Nonparametric test of the null hypothesis that a species was still extant
-at a candidate test year, based on the ratio of the time since the last
-sighting to the total observation window, under a homogeneous sighting
-process.
+Parametric test of the null hypothesis that a species was still extant at a
+candidate test year, under a stationary Poisson sighting process.
 }
 \references{
 Solow, A. R. (1993). Inferring extinction from sighting data. Ecology,

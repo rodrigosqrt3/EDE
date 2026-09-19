@@ -9,7 +9,9 @@ sighting_data(data, time_col = 1L, count_col = 2L)
 \arguments{
 \item{data}{A data frame or matrix. By default the first column is read
 as time (e.g. year) and the second as the number of sightings recorded
-at that time.}
+at that time. The earliest supplied time defines the observation origin;
+include an initial zero-count row when observation began before the first
+sighting.}
 
 \item{time_col, count_col}{Column name or position for time and sighting
 count.}

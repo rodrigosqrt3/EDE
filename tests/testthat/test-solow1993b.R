@@ -3,6 +3,18 @@ test_that("solow1993b reproduces published value for Black-footed ferret (Solow 
   expect_equal(round(p, 3), 0.050)
 })
 
+test_that("solow1993b uses an explicit zero-count observation origin", {
+  # This synthetic record has the same sufficient statistics as the paper's
+  # ferret example: n = 28, Tn = 153, S = 1714 and T = 229.
+  event_times <- c(40, 46:71, 153)
+  d <- sighting_data(data.frame(
+    time = c(0, event_times),
+    count = c(0, rep(1, length(event_times)))
+  ))
+  curve <- solow1993b(d, test_year = 229, data_out = TRUE)
+  expect_equal(round(curve$chance[curve$time == 229], 3), 0.050)
+})
+
 test_that("solow1993b validates alpha, test_year and minimum n", {
   d <- sighting_data(data.frame(year = c(1900, 1910), sightings = c(1, 1)))
   expect_error(solow1993b(d, alpha = 0, test_year = 2000), "must be in \\(0, 1\\)")
@@ -32,6 +44,12 @@ test_that("solow1993b_fisher_series handles edge cases", {
 
   d_single <- data.frame(time = 1900, count = 1)
   expect_equal(EDE:::solow1993b_chance(d_single), 1.0)
+
+  d_one_used <- data.frame(time = 0:2, count = c(0, 1, 0))
+  expect_equal(EDE:::solow1993b_chance(d_one_used), 1.0)
+
+  d_zero_denominator <- data.frame(time = 0:1, count = c(0, 2))
+  expect_equal(EDE:::solow1993b_chance(d_zero_denominator), 1.0)
 })
 
 test_that("solow1993b estimates extinction year and handles warning when alpha is not reached", {

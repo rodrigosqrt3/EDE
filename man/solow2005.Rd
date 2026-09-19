@@ -2,31 +2,36 @@
 % Please edit documentation in R/solow2005.R
 \name{solow2005}
 \alias{solow2005}
-\title{Solow (2005) sighting-effort-weighted persistence test}
+\title{Solow (2005) Weibull extreme-value persistence test}
 \usage{
-solow2005(sd, alpha = 0.05, test_year, data_out = FALSE)
+solow2005(sd, alpha = 0.05, test_year, data_out = FALSE, k = NULL)
 }
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
 \item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the chance of persistence falls to
+the first candidate year at which the p-value falls to
 or below \code{alpha}.}
 
 \item{test_year}{Latest year to test. Must be supplied as a number.}
 
-\item{data_out}{If \code{TRUE}, return the full chance-of-persistence curve
+\item{data_out}{If \code{TRUE}, return the full p-value curve
 instead of the single first-rejection year.}
+
+\item{k}{Number of most recent sighting events to use. Counts greater than
+one are treated as independent events at the recorded time. By default,
+all sighting events are used. Must be at least 3.}
 }
 \value{
 An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
 with columns \code{time} and \code{chance}.
 }
 \description{
-Parametric extension of \code{\link[=solow1993]{solow1993()}} that weights the observation
-window by cumulative sighting effort (sighting count x time since first
-sighting) instead of raw elapsed time, giving a more realistic null model
-when sighting effort was not constant over the record.
+Tests persistence using the Weibull extreme-value model for the \code{k} most
+recent sighting events. This is the hypothesis-test counterpart of
+\code{\link[=ole]{ole()}}. For a candidate time \code{T}, the p-value is equation 16 of Solow
+(2005). Earlier EDE versions incorrectly described a Fisher-gap calculation
+as a sighting-effort-weighted method from this paper.
 }
 \references{
 Solow, A. R. (2005). Inferring extinction from a sighting record.

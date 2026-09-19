@@ -7,7 +7,7 @@ test_that("sighting_data validates and sorts", {
 
 test_that("sighting_data rejects bad input", {
   expect_error(sighting_data(data.frame(a = c(1, 1), b = c(1, 2))), "duplicated")
-  expect_error(sighting_data(data.frame(a = c(-1, 1), b = c(1, 2))), "negative")
+  expect_error(sighting_data(data.frame(a = c(-1, 1), b = c(1, -2))), "negative")
   expect_error(sighting_data(data.frame(a = c("x", "y"), b = c(1, 2))), "numeric")
 })
 
@@ -26,15 +26,20 @@ test_that("sighting_data requires at least two columns", {
 test_that("sighting_data rejects NA in time or count", {
   expect_error(
     sighting_data(data.frame(a = c(1, NA), b = c(1, 2))),
-    "cannot contain NA"
+    "finite, non-missing"
   )
 })
 
-test_that("sighting_data warns when counts exceed all time values", {
-  expect_warning(
-    sighting_data(data.frame(a = c(1, 2, 3), b = c(1, 2, 100))),
-    "check that"
+test_that("sighting_data requires whole-number counts", {
+  expect_error(
+    sighting_data(data.frame(time = c(1900, 1901), count = c(1, 1.5))),
+    "whole numbers"
   )
+})
+
+test_that("sighting_data permits negative time coordinates", {
+  sd <- sighting_data(data.frame(time = c(-10, 0, 10), count = c(1, 2, 1)))
+  expect_equal(sd$time, c(-10, 0, 10))
 })
 
 test_that("sighting_data accepts a matrix", {

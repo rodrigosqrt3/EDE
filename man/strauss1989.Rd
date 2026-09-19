@@ -12,16 +12,13 @@ strauss1989(sd, alpha = 0.05)
 \item{alpha}{Significance level, in (0, 1).}
 }
 \value{
-An \link{ede_estimate} object. Only \code{upper} is defined: the method
-gives a one-sided bound on how much later than the last sighting
-extinction could plausibly have occurred, not a point estimate with a
-two-sided interval.
+An \link{ede_estimate} object containing the unbiased point estimate and
+a one-sided confidence interval.
 }
 \description{
-Classical confidence interval for the true endpoint of a temporal range,
-derived from the distribution of the sample range under a uniform
-occurrence model. Originally developed for stratigraphic ranges, applied
-here to sighting records.
+Unbiased point estimator and classical confidence interval for the true
+endpoint of a temporal range, derived from the distribution of the sample
+range under a uniform occurrence model.
 }
 \references{
 Strauss, D., & Sadler, P. M. (1989). Classical confidence intervals and

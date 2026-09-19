@@ -10,13 +10,13 @@ mcinerny2006(sd, alpha = 0.05, test_year, data_out = FALSE)
 \item{sd}{A \link{sighting_data} object.}
 
 \item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the chance of persistence falls to
+the first candidate year at which the p-value falls to
 or below \code{alpha}.}
 
 \item{test_year}{Latest year to test. Must be later than the last
 sighting.}
 
-\item{data_out}{If \code{TRUE}, return the full chance-of-persistence curve
+\item{data_out}{If \code{TRUE}, return the full p-value curve
 instead of the single first-rejection year.}
 }
 \value{

@@ -10,12 +10,12 @@ burgman1995(sd, alpha = 0.05, test_year, data_out = FALSE)
 \item{sd}{A \link{sighting_data} object.}
 
 \item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the chance of persistence falls to
+the first candidate year at which the p-value falls to
 or below \code{alpha}.}
 
 \item{test_year}{Latest year to test. Must be supplied as a number.}
 
-\item{data_out}{If \code{TRUE}, return the full chance-of-persistence curve
+\item{data_out}{If \code{TRUE}, return the full p-value curve
 instead of the single first-rejection year.}
 }
 \value{
@@ -24,10 +24,10 @@ with columns \code{time} and \code{chance}.
 }
 \description{
 Computes the probability that, if sighting events were distributed
-uniformly at random over the candidate observation window, the largest
-observed gap between sightings would not exceed the gap actually seen in
-the data. Uses an inclusion-exclusion (Stirling-number) argument on the
-occupancy of time bins by sighting events.
+uniformly at random over the candidate observation window, a run of empty
+periods at least as long as the largest observed run would occur. Uses an
+inclusion-exclusion (Stirling-number) argument on the occupancy of time bins
+by sighting events (equation 4 of the source paper).
 }
 \references{
 Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat

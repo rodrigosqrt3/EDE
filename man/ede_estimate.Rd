@@ -8,6 +8,7 @@ A list with components:
 \describe{
 \item{estimate}{Point estimate, or \code{NA} if not defined for this method.}
 \item{lower, upper}{Confidence interval bounds, or \code{NA} if not defined.}
+\item{interval_type}{Either \code{"two-sided"} or \code{"one-sided"}.}
 \item{method}{Character string identifying the estimator.}
 \item{alpha}{Significance level used to compute the estimate.}
 }

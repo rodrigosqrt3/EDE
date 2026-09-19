@@ -13,7 +13,7 @@ solow1993b(sd, alpha = 0.05, test_year, data_out = FALSE)
 
 \item{test_year}{Latest year to test. Must be later than the last sighting.}
 
-\item{data_out}{If \code{TRUE}, return the full chance-of-persistence curve
+\item{data_out}{If \code{TRUE}, return the full p-value curve
 instead of the single first-rejection year.}
 }
 \value{
@@ -21,10 +21,9 @@ An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
 with columns \code{time} and \code{chance}.
 }
 \description{
-Nonparametric test of the null hypothesis that a declining species was still
-extant at a candidate test year, based on the ratio of Fisher's gap
-distribution for a non-stationary Poisson process with an exponential
-declining rate.
+Conditional test of the null hypothesis that a declining species was still
+extant at a candidate test year, under a non-stationary Poisson process with
+an exponentially declining rate.
 }
 \references{
 Solow, A. R. (1993b). Inferring extinction in a declining population.
