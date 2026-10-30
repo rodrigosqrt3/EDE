@@ -48,7 +48,13 @@
 #' truncated exponential prior, 4.97 for the uniform prior) are not
 #' reproduced exactly (3.28 and 3.87 here); the paper does not state the
 #' time conventions behind its numerical evaluation, to which the Bayes
-#' factor is sensitive.
+#' factor is sensitive. The record used is identical to the original source
+#' (Elphick, Reed & Roberts 2010 supplement: 22 physical, 17 independent
+#' expert and 29 controversial years) and to the record in the code of
+#' Kodikara et al. (2020); the re-analysis of Kodikara, Demirhan & Stone
+#' (2018, eqs 5-9, 17-23) uses the same likelihoods as here
+#' (`p(t | persistence) = (n - 1)! / (T^n (nc + 1))` is equation 7 at
+#' `tau = T`) and reports no numerical Bayes factors for the original record.
 #'
 #' @param certain A [sighting_data] object with the certain sightings. Its
 #'   earliest time defines the observation origin.

@@ -208,9 +208,10 @@ weiss_marshall1999_cdf <- function(post, u) {
 weiss_marshall1999_quantile <- function(post, prob) {
   q <- cumsum(post$w)
   k <- which(q >= prob)[1L]
+  # rounding can leave sum(w) just below prob; take the top of the last interval
   if (is.na(k)) k <- length(q)
   q_prev <- if (k == 1L) 0 else q[k - 1L]
-  frac <- (prob - q_prev) / post$w[k]
+  frac <- min(1, (prob - q_prev) / post$w[k])
   e_lo <- exp(-post$u_lo[k] / post$l)
   e_hi <- exp(-post$u_hi[k] / post$l)
   -post$l * log(e_lo - frac * (e_lo - e_hi))

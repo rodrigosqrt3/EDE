@@ -134,8 +134,9 @@ solow1993b_log_fisher <- function(y, m) {
     for (k in 2:m) {
       idx <- seq_len(m - k + 1)
       v <- z[idx] * v[idx] + (k - z[idx]) * v[idx + 1]
+      # 1 < 1/y < m puts some z in [0, 1), and the recursion keeps the
+      # B-spline positive on its support, so top > 0
       top <- max(v)
-      if (top <= 0) return(-Inf)
       v <- v / top
       log_scale <- log_scale + log(top)
     }

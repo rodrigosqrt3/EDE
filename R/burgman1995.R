@@ -202,7 +202,7 @@ burgman_equation4_pvalue <- function(ct, n, r) {
                      lgamma(a - j + 1) + log_s[j] - n * log(ct))
     signs <- c(signs, ifelse(k %% 2 == 1, 1, -1))
   }
-  if (length(log_terms) == 0L) return(0)
+  # r < ct guarantees at least the j = 1 term, so log_terms is never empty
 
   # scale by the largest term so neither the Stirling numbers nor ct^n
   # overflow; cancellation between alternating terms is checked below

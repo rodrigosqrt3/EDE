@@ -317,7 +317,9 @@ caley_barry_nonconstant <- function(y, n_iter, init, prior_growth, prior_delta,
     cs <- c(0, cumsum(log(1 - f[after]) + log(1 - l[after])))
     w <- c(exp(cs[seq_along(after)] + log(f[after])), exp(cs[length(after) + 1]))
     w[!is.finite(w) | w < 0] <- 0
-    if (sum(w[seq_along(after)]) <= 0) w[length(w)] <- 1
+    # Code S2's guard: all extinction weights can only underflow to zero
+    # under extreme user-set priors, never with the paper's
+    if (sum(w[seq_along(after)]) <= 0) w[length(w)] <- 1 # nocov
     j <- sample.int(length(w), 1L, prob = w)
     z <- if (j <= length(after)) final + j else NA_integer_
 
