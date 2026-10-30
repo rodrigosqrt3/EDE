@@ -103,7 +103,40 @@ test_that("non-constant model reproduces the published results", {
   near(res$delta[["median"]], 0.88, 0.1)
 })
 
+test_that("non-constant model returns a consistent short chain", {
+  # a short run that is not skipped on CRAN, so the sampler is exercised by
+  # every check; the published values are tested above with long chains
+  set.seed(1)
+  res <- caley_barry2014(fox01(), 2012, model = "nonconstant",
+                         n_iter = 600, burn_in = 100)
+  expect_s3_class(res, "ede_bayes")
+  expect_true(is.na(res$prior) && is.na(res$bayes_factor))
+  expect_gte(res$posterior, 0)
+  expect_lte(res$posterior, 1)
+  near(res$posterior + sum(res$extinction_time$probability), 1, 1e-12)
+  expect_equal(res$extinction_time$time, 2007:2012)
+  expect_equal(nrow(res$samples), 500L)
+  expect_true(all(res$acceptance >= 0 & res$acceptance <= 1))
+  for (par in c("growth", "delta", "eps0", "eps1")) {
+    expect_named(res[[par]], c("median", "lower", "upper"))
+    expect_true(res[[par]][["lower"]] <= res[[par]][["upper"]])
+  }
+  expect_true(all(res$samples$growth > -2.3 & res$samples$growth < 0.69))
+  expect_true(all(res$samples$delta > 0.01 & res$samples$delta < 4.6))
+  known <- res$samples$extinction_time[!is.na(res$samples$extinction_time)]
+  expect_true(all(known >= 2007 & known <= 2012))
+
+  set.seed(1)
+  again <- caley_barry2014(fox01(), 2012, model = "nonconstant",
+                           n_iter = 600, burn_in = 100)
+  expect_identical(again$samples, res$samples)
+})
+
 test_that("caley_barry2014 validates its inputs", {
+  expect_error(caley_barry2014(fox01(), 2012, model = "nonconstant",
+                               prior_delta = c(-1, 4.6)), "prior_delta")
+  expect_error(caley_barry2014(fox01(), 2012, model = "nonconstant",
+                               prior_eps0 = 1), "prior_eps0")
   expect_error(caley_barry2014(fox01()), "test_year")
   expect_error(caley_barry2014(fox01(), 2006), "later than")
   expect_error(caley_barry2014(fox01(), 2012.5), "whole number")
