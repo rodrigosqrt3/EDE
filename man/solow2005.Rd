@@ -9,29 +9,38 @@ solow2005(sd, alpha = 0.05, test_year, data_out = FALSE, k = NULL)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be supplied as a number.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
 
 \item{k}{Number of most recent sighting events to use. Counts greater than
-one are treated as independent events at the recorded time. By default,
-all sighting events are used. Must be at least 3.}
+one are treated as independent events at the recorded time; Solow (2005)
+recommends combining sightings that are obviously related. By default,
+all sighting events are used. Must be at least 3; Solow (2005) suggests
+at least 5.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}.
+An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
+upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
+columns \code{time} and \code{chance} (p-values).
 }
 \description{
 Tests persistence using the Weibull extreme-value model for the \code{k} most
-recent sighting events. This is the hypothesis-test counterpart of
-\code{\link[=ole]{ole()}}. For a candidate time \code{T}, the p-value is equation 16 of Solow
-(2005). Earlier EDE versions incorrectly described a Fisher-gap calculation
-as a sighting-effort-weighted method from this paper.
+recent sighting events, the model behind \code{\link[=ole]{ole()}}. For a candidate time
+\code{T}, the approximate p-value is equation 16 of Solow (2005), with the
+shape parameter estimated by equation 15.
+}
+\details{
+Inverting the test gives the one-sided upper confidence bound of equation
+17, \verb{(t[1] - c t[k]) / (1 - c)} with \code{c = (-log(alpha) / k)^m}, returned as
+\code{upper}. The bound does not exist when \code{-log(alpha) >= k}. Note that
+\code{\link[=ole]{ole()}} reports the two-sided interval of Roberts & Solow (2003), so its
+upper limit at level \code{alpha} equals this bound at level \code{alpha / 2}.
 }
 \references{
 Solow, A. R. (2005). Inferring extinction from a sighting record.

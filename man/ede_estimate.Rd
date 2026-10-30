@@ -7,12 +7,25 @@
 A list with components:
 \describe{
 \item{estimate}{Point estimate, or \code{NA} if not defined for this method.}
-\item{lower, upper}{Confidence interval bounds, or \code{NA} if not defined.}
+\item{lower, upper}{Interval bounds, or \code{NA} if not defined. An upper
+bound that does not exist is returned as \code{Inf}.}
 \item{interval_type}{Either \code{"two-sided"} or \code{"one-sided"}.}
 \item{method}{Character string identifying the estimator.}
 \item{alpha}{Significance level used to compute the estimate.}
 }
+Bayesian estimators (\code{\link[=strauss1989_bayes]{strauss1989_bayes()}}, \code{\link[=weiss_marshall1999]{weiss_marshall1999()}}) return
+posterior probability (credible) intervals and set \code{interval_kind} to
+\code{"credible"}. Some estimators append method-specific components,
+documented on their help pages.
 }
 \description{
 Common S3 result class returned by every estimator in this package.
+}
+\details{
+Persistence tests (\code{\link[=solow1993]{solow1993()}}, \code{\link[=solow2005]{solow2005()}}, \code{\link[=mcinerny2006]{mcinerny2006()}},
+\code{\link[=burgman1995]{burgman1995()}}, \code{\link[=solow_roberts2003]{solow_roberts2003()}} and \code{\link[=jaric2010]{jaric2010()}}) do not define a
+point estimate. Inverting the test gives a one-sided \code{1 - alpha} upper
+confidence bound for the extinction time, which is returned in \code{upper} with
+\code{estimate = NA}. \code{\link[=solow1993b]{solow1993b()}} also returns the minimum variance unbiased
+estimate of its model in \code{estimate}.
 }

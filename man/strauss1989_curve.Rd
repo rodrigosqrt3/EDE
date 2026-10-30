@@ -2,7 +2,7 @@
 % Please edit documentation in R/strauss1989.R
 \name{strauss1989_curve}
 \alias{strauss1989_curve}
-\title{Full confidence curve for the Strauss & Sadler (1989) estimator}
+\title{Confidence curve for the Strauss & Sadler (1989) upper bound}
 \usage{
 strauss1989_curve(sd)
 }
@@ -10,10 +10,12 @@ strauss1989_curve(sd)
 \item{sd}{A \link{sighting_data} object.}
 }
 \value{
-A data frame with columns \code{time} and \code{chance} (1 - alpha).
+A data frame with columns \code{time} and \code{chance}, where \code{chance} is
+the confidence level \code{1 - alpha} of the bound \code{time}, i.e. the
+probability that the true endpoint is at or before \code{time}.
 }
 \description{
-Same estimator as \code{\link[=strauss1989]{strauss1989()}}, evaluated over a grid of alpha values
-from 0.01 to 1, for plotting the confidence curve instead of a single
-bound.
+Evaluates the upper confidence bound of \code{\link[=strauss1989]{strauss1989()}},
+\code{z + c (z - y)} with \code{c = alpha^(-1 / (n - 1)) - 1}, for alpha from 0.01
+to 1 in steps of 0.01, for plotting instead of a single bound.
 }

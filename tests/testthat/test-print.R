@@ -1,5 +1,5 @@
 test_that("print.ede_estimate prints estimate and CI when both are defined", {
-  d <- data.frame(years = c(1900, 1905, 1910), sightings = c(1, 1, 1))
+  d <- data.frame(years = c(1900, 1905, 1910, 1912, 1913), sightings = 1)
   res <- ole(sighting_data(d), alpha = 0.05)
   out <- capture.output(print(res))
   expect_match(out[1], "^<OLE")
@@ -26,6 +26,13 @@ test_that("print.ede_estimate returns its argument invisibly", {
   ret <- withVisible(print(res))
   expect_false(ret$visible)
   expect_identical(ret$value, res)
+})
+
+test_that("print.ede_estimate omits the missing estimate of a persistence test", {
+  d <- sighting_data(data.frame(year = c(1915, 1922, 1932, 1948, 1952), sightings = 1))
+  out <- capture.output(print(solow1993(d, test_year = 2100)))
+  expect_length(out, 2L)
+  expect_match(out[2], "95% upper confidence bound")
 })
 
 test_that("print.ede_estimate prints a standalone upper confidence bound", {

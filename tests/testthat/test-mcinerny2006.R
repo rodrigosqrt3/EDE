@@ -17,6 +17,31 @@ test_that("mcinerny2006 reproduces published values from Table 1 (McInerny et al
   ))
   r3 <- mcinerny2006(d3, alpha = 0.05, test_year = 2030, data_out = TRUE)
   expect_equal(r3$chance[r3$time == 2030], 0.793, tolerance = 5e-3)
+
+  # P. delenatii: n = 2, tn = 2, T = 7
+  d4 <- sighting_data(data.frame(year = c(2000, 2002), sightings = 1))
+  r4 <- suppressWarnings(mcinerny2006(d4, test_year = 2007, data_out = TRUE))
+  expect_lt(abs(r4$chance[r4$time == 2007] - 0.031), 5e-4)
+})
+
+test_that("mcinerny2006 uses a zero-count first row as the known start date", {
+  # with the first sighting as origin: n = 2, tn = 5
+  anchored <- sighting_data(data.frame(year = c(2000, 2003, 2005), sightings = 1))
+  # with a known start in 1990: n = 3, tn = 15
+  known <- sighting_data(data.frame(year = c(1990, 2000, 2003, 2005),
+                                    sightings = c(0, 1, 1, 1)))
+  a <- mcinerny2006(anchored, test_year = 2007, data_out = TRUE)
+  k <- mcinerny2006(known, test_year = 2007, data_out = TRUE)
+  expect_equal(a$chance[a$time == 2007], (1 - 2 / 5)^2)
+  expect_equal(k$chance[k$time == 2007], (1 - 3 / 15)^2)
+})
+
+test_that("mcinerny2006 rejects after five empty units at rate 0.5 (Fig. 1b)", {
+  d <- sighting_data(data.frame(year = seq(0, 20, 2), sightings = 1))
+  res <- mcinerny2006(d, alpha = 0.05, test_year = 100)
+  expect_true(is.na(res$estimate))
+  expect_equal(res$interval_type, "one-sided")
+  expect_equal(res$upper, 25)
 })
 
 test_that("mcinerny2006 validates alpha, test_year, and minimum n", {
@@ -27,7 +52,7 @@ test_that("mcinerny2006 validates alpha, test_year, and minimum n", {
   expect_error(mcinerny2006(d, 0.05, test_year = "2000"), "test_year")
 
   d1 <- sighting_data(data.frame(year = 1900, sightings = 1))
-  expect_error(mcinerny2006(d1, 0.05, test_year = 2000), "at least 2")
+  expect_error(mcinerny2006(d1, 0.05, test_year = 2000), "at least 1")
 })
 
 test_that("mcinerny2006 rejects test_year at or before the last sighting", {
@@ -37,22 +62,23 @@ test_that("mcinerny2006 rejects test_year at or before the last sighting", {
 })
 
 test_that("mcinerny2006 warns and returns NA when persistence is never rejected", {
-  # sighting rate is low enough here that chance stays above alpha for a
-  # single candidate year right after the last sighting
+  # sighting rate is low enough here that the p-value stays above alpha for
+  # a single candidate year right after the last sighting
   d <- sighting_data(data.frame(year = c(1900, 1902, 1904, 1990), sightings = c(1, 1, 1, 1)))
   expect_warning(res <- mcinerny2006(d, alpha = 0.001, test_year = 1991), "never falls")
-  expect_true(is.na(res$estimate))
+  expect_true(is.na(res$upper))
 })
 
-test_that("mcinerny2006 warns when the sighting rate is degenerate (n_used / tn >= 1)", {
+test_that("mcinerny2006 warns when the sighting rate is degenerate (n / tn >= 1)", {
   # a sighting in every single time unit up to the last one
   d <- sighting_data(data.frame(year = c(1900, 1901, 1902, 1903), sightings = rep(1, 4)))
-  expect_warning(mcinerny2006(d, alpha = 0.05, test_year = 1904), "degenerate")
+  expect_warning(res <- mcinerny2006(d, alpha = 0.05, test_year = 1904), "degenerate")
+  expect_equal(res$upper, 1904)
 })
 
-test_that("mcinerny2006 point estimate matches the first crossing in its own curve", {
+test_that("mcinerny2006 upper bound matches the first crossing in its own curve", {
   d <- sighting_data(data.frame(year = c(1900, 1902, 1903, 1905, 1907), sightings = rep(1, 5)))
   curve <- mcinerny2006(d, alpha = 0.05, test_year = 2000, data_out = TRUE)
-  pt <- mcinerny2006(d, alpha = 0.05, test_year = 2000)
-  expect_equal(pt$estimate, curve$time[curve$chance <= 0.05][1])
+  res <- mcinerny2006(d, alpha = 0.05, test_year = 2000)
+  expect_equal(res$upper, curve$time[curve$chance <= 0.05][1])
 })

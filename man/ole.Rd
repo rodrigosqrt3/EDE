@@ -12,21 +12,36 @@ ole(sd, alpha = 0.05, k = NULL)
 \item{alpha}{Significance level for the confidence interval, in (0, 1).}
 
 \item{k}{Number of most recent sighting events to use. Counts greater than
-one are treated as independent events at the recorded time. By default,
-all sighting events are used. Must be at least 3.}
+one are treated as independent events at the recorded time; Solow (2005)
+recommends combining sightings that are obviously related. By default,
+all sighting events are used. Must be at least 3; Solow (2005) suggests
+at least 5, and notes that the extreme-value approximation may fail if
+\code{k} is too large.}
 }
 \value{
 An \link{ede_estimate} object.
 }
 \description{
-Estimates the extinction date from the sighting times with a positive
-count, using the best linear unbiased estimator (BLUE) of Roberts & Solow
-(2003) under a Weibull-type record-value model for the spacing of the
-largest order statistics.
+Estimates the extinction date by optimal linear estimation (Cooke, 1980),
+as applied by Roberts & Solow (2003). The joint distribution of the \code{k}
+most recent sighting times (the extreme order statistics) is assumed to
+have the Weibull extreme-value form; the estimate is the weighted sum of
+those times given by equations 12-15 of Solow (2005).
+}
+\details{
+The confidence interval is the two-sided \code{1 - alpha} interval of Roberts &
+Solow (2003). Its upper limit does not exist when \code{-log(alpha / 2) >= k};
+it is then returned as \code{Inf} with a warning. \code{\link[=solow2005]{solow2005()}} inverts the
+corresponding test one-sidedly (Solow, 2005, equation 17), so its bound at
+level \code{alpha} equals the upper limit here at level \code{2 * alpha}.
 }
 \references{
+Cooke, P. (1980). Optimal linear estimation of bounds of random variables.
+Biometrika, 67(1), 257-258.
+
 Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the
 dodo become extinct? Nature, 426(6964), 245.
+
 Solow, A. R. (2005). Inferring extinction from a sighting record.
 Mathematical Biosciences, 195(1), 47-55.
 }

@@ -2,13 +2,20 @@
 #'
 #' Tests the null hypothesis that a species persisted to a candidate time
 #' using only the two most recent distinct sighting times. For candidate time
-#' `T`, the p-value is `(t[n] - t[n-1]) / (T - t[n-1])`.
+#' `T`, the p-value is `(t[n] - t[n-1]) / (T - t[n-1])` (equation 4 of the
+#' source paper). It is exact for a constant sighting rate and asymptotically
+#' correct otherwise.
+#'
+#' The paper derives the test from the Robson & Whitlock (1964) interval;
+#' inverting it gives the one-sided upper confidence bound
+#' `t[n] + (t[n] - t[n-1]) (1 - alpha) / alpha`, returned as `upper`. It is
+#' the same bound as [robson1964()].
 #'
 #' @inheritParams solow1993
 #'
-#' @return An [ede_estimate] object, or (if `data_out = TRUE`) a data frame
-#'   with columns `time` and `chance`. The latter contains p-values; the column
-#'   name is retained for compatibility with EDE 0.1.0.
+#' @return An [ede_estimate] object with `estimate = NA` and the one-sided
+#'   upper bound in `upper`, or (if `data_out = TRUE`) a data frame with
+#'   columns `time` and `chance` (p-values).
 #'
 #' @references
 #' Solow, A. R., & Roberts, D. L. (2003). A nonparametric test for extinction
@@ -19,10 +26,7 @@ solow_roberts2003 <- function(sd, alpha = 0.05, test_year,
                               data_out = FALSE) {
   stopifnot(inherits(sd, "sighting_data"))
   if (alpha <= 0 || alpha >= 1) stop("`alpha` must be in (0, 1).", call. = FALSE)
-  if (missing(test_year) || !is.numeric(test_year) ||
-      length(test_year) != 1L || is.na(test_year)) {
-    stop("`test_year` must be supplied as a number.", call. = FALSE)
-  }
+  check_test_year(test_year)
 
   times <- sort(unique(sd$time[sd$count > 0]))
   n <- length(times)
@@ -32,22 +36,14 @@ solow_roberts2003 <- function(sd, alpha = 0.05, test_year,
   }
   last_sight <- times[n]
   previous_sight <- times[n - 1L]
-  if (test_year <= last_sight) {
-    stop("`test_year` must be later than the last sighting.", call. = FALSE)
-  }
+  check_test_year(test_year, last_sight)
 
-  candidates <- seq(last_sight + 1, test_year)
-  p_value <- (last_sight - previous_sight) /
-    (candidates - previous_sight)
+  gap <- last_sight - previous_sight
+  candidates <- candidate_times(last_sight, test_year)
+  p_value <- gap / (candidates - previous_sight)
 
   if (data_out) return(data.frame(time = candidates, chance = p_value))
 
-  below <- candidates[p_value <= alpha]
-  if (length(below) == 0L) {
-    warning("p-value never falls to alpha before `test_year`; returning NA.",
-            call. = FALSE)
-    return(new_ede_estimate(NA_real_, method = "Solow & Roberts (2003)",
-                            alpha = alpha))
-  }
-  new_ede_estimate(below[1], method = "Solow & Roberts (2003)", alpha = alpha)
+  bound <- last_sight + gap * (1 - alpha) / alpha
+  test_bound_result(bound, test_year, "Solow & Roberts (2003)", alpha)
 }

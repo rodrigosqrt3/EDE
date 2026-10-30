@@ -1,8 +1,19 @@
 #' Robson & Whitlock (1964) truncation point estimator
 #'
-#' Estimates the extinction date by jackknife bias correction of the most
-#' recent sighting. If the two most recent distinct sighting times are
-#' `t[n-1]` and `t[n]`, the estimate is `t[n] + (t[n] - t[n-1])`.
+#' Estimates the extinction date by a Quenouille (jackknife-type) bias
+#' reduction of the most recent sighting. If the two most recent distinct
+#' sighting times are `t[n-1]` and `t[n]`, the estimate is
+#' `t[n] + (t[n] - t[n-1])` and the one-sided upper confidence bound is
+#' `t[n] + (t[n] - t[n-1]) (1 - alpha) / alpha`.
+#'
+#' The estimator is mean-unbiased to order `n^-2` in general and exactly
+#' unbiased for a uniform distribution. The bound is exact for a uniform
+#' distribution and asymptotically valid when the density is continuous and
+#' positive at the endpoint; its coverage is below `1 - alpha` when the
+#' density decreases towards the endpoint, as with a declining sighting rate.
+#'
+#' Only distinct sighting times are used; counts are ignored, so the paper's
+#' order statistics are applied to distinct times.
 #'
 #' @param sd A [sighting_data] object.
 #' @param alpha Significance level, in (0, 1), for the approximate one-sided

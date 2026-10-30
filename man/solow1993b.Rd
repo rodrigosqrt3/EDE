@@ -9,23 +9,71 @@ solow1993b(sd, alpha = 0.05, test_year, data_out = FALSE)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1).}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be later than the last sighting.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}.
+An \link{ede_estimate} object with the minimum variance unbiased
+estimate in \code{estimate} and the one-sided upper bound in \code{upper} (\code{NA},
+with a warning, if it does not exist before \code{test_year}), or (if
+\code{data_out = TRUE}) a data frame with columns \code{time} and \code{chance}
+(p-values).
 }
 \description{
 Conditional test of the null hypothesis that a declining species was still
 extant at a candidate test year, under a non-stationary Poisson process with
-an exponentially declining rate.
+an exponentially declining rate. The test conditions on \code{n} and on the sum
+\code{S} of the sighting times, so the rate parameters are not estimated; the
+p-value is \code{F(t[n]) / F(T)}, where \code{F} is Fisher's distribution of the
+largest gap (equations 3-4 of the source paper).
+}
+\details{
+Sighting events are counted as in \code{\link[=solow1993]{solow1993()}}: one sighting at the
+observation origin defines it and is omitted, and every other sighting
+event is counted, including repeated sightings in one time unit. Include a
+zero-count first row when observation began before the first sighting, as
+in the black-footed ferret example of the source paper.
+
+Solow (1993b) defines only the test. Under the assumption that the species
+is extinct, the minimum variance unbiased estimate of the extinction time
+under the same truncated exponential model (Beg, 1982) is equation 8 of
+Solow (2005), also listed in Table 1 of McCrea et al. (2024):
+\verb{T_E = t[n] + sum_\{i=0\}^\{[s/t[n]]\} (-1)^i C(n, i) (s - i t[n])^(n-1) / (n (n-1) sum_\{i=0\}^\{[s/t[n]]-1\} (-1)^i C(n-1, i) (s - (i+1) t[n])^(n-2))},
+which equals \verb{t[n] + F(t[n]) / F'(t[n])}. It is returned as \code{estimate}
+(in the original time units, i.e. shifted by the origin). Both sums are
+evaluated as Fisher's largest-gap probabilities through the stable
+B-spline (Irwin-Hall) recursion rather than the alternating series, which
+loses all precision when the sighting times are concentrated near \code{t[n]}.
+The estimate is \code{NA} when it is undefined (all sightings other than the
+last at the origin with \code{n > 2}, or all at \code{t[n]}).
+
+Inverting the test numerically gives a one-sided upper confidence bound
+for the extinction time, returned as \code{upper} (a package construct; Solow,
+2005, Section 3, describes the numerical inversion). Under this model the
+bound may not exist: the p-value cannot fall below \code{F(t[n])}, however late
+the candidate time (Solow, 2005, Section 3).
 }
 \references{
 Solow, A. R. (1993b). Inferring extinction in a declining population.
 Journal of Mathematical Biology, 32(1), 79-82.
+
+Solow, A. R. (2005). Inferring extinction from a sighting record.
+Mathematical Biosciences, 195(1), 47-55.
+
+Beg, M. A. (1982). Optimal tests and estimators for truncated exponential
+families. Metrika, 29, 103-113.
+
+Solow, A. R., & Helser, T. (2000). Detecting extinction in sighting data.
+In S. Ferson & M. Burgman (Eds.), Quantitative Methods for Conservation
+Biology (pp. 1-6). Springer, New York.
+
+McCrea, R. S., Cheale, T., Campillo-Funollet, E., & Roberts, D. L.
+(2024). Inferring species extinction from sighting data. Cambridge
+Prisms: Extinction, 2, e19.
 }

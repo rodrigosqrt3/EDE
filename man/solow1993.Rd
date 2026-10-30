@@ -2,31 +2,49 @@
 % Please edit documentation in R/solow1993.R
 \name{solow1993}
 \alias{solow1993}
-\title{Solow (1993) constant-rate persistence test}
+\title{Solow (1993a) constant-rate persistence test}
 \usage{
 solow1993(sd, alpha = 0.05, test_year, data_out = FALSE)
 }
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be supplied as a number.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}.
+An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
+upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
+columns \code{time} and \code{chance}. \code{chance} contains p-values; the column name
+is retained for compatibility with EDE 0.1.0.
 }
 \description{
 Parametric test of the null hypothesis that a species was still extant at a
-candidate test year, under a stationary Poisson sighting process.
+candidate test year, under a stationary Poisson sighting process. For
+candidate time \code{T}, the p-value is \code{(t[n] / T)^n} (equation 2 of Solow,
+1993a), with times measured from the observation origin.
+}
+\details{
+The earliest supplied time defines the observation origin. If that time
+has a sighting, one sighting defines the origin and is omitted, as in the
+Caribbean monk seal example of the source paper; any further sightings in
+the same time unit are counted. Every sighting event after that is counted,
+so a time unit with several sightings contributes several events to \code{n}.
+
+Solow (1993a) defines only the test. Inverting it gives the one-sided
+upper confidence bound \code{t[n] / alpha^(1/n)} for the extinction time
+(Solow, 2005, equation 5), which is returned as \code{upper}.
 }
 \references{
-Solow, A. R. (1993). Inferring extinction from sighting data. Ecology,
+Solow, A. R. (1993a). Inferring extinction from sighting data. Ecology,
 74(3), 962-964.
+
+Solow, A. R. (2005). Inferring extinction from a sighting record.
+Mathematical Biosciences, 195(1), 47-55.
 }

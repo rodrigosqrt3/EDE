@@ -4,26 +4,55 @@
 \alias{jaric_roberts2014}
 \title{Reliability-adjusted extinction inference}
 \usage{
-jaric_roberts2014(sd, reliability, alpha = 0.05)
+jaric_roberts2014(
+  sd,
+  reliability,
+  alpha = 0.05,
+  test_year = NULL,
+  data_out = FALSE
+)
 }
 \arguments{
-\item{sd}{A \link{sighting_data} object. This method currently requires binary
-counts (zero or one) because reliability is assigned to individual
-observations.}
+\item{sd}{A \link{sighting_data} object. Counts must be zero or one. This is a
+restriction of the package, not of the paper: reliability belongs to an
+individual record, and the paper does not say how to combine several
+records of different reliability in one time unit.}
 
 \item{reliability}{Numeric reliabilities in \verb{[0, 1]}, supplied either for
 every row of \code{sd} or for the positive-count rows only.}
 
 \item{alpha}{Significance level, in (0, 1), for the upper confidence bound.}
+
+\item{test_year}{Optional candidate time at which to compute the p-value
+of equations 7-8. Must be later than the last sighting. Required when
+\code{data_out = TRUE}.}
+
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps
+after the last sighting up to \code{test_year} instead of the estimate.}
 }
 \value{
-An \link{ede_estimate} object.
+An \link{ede_estimate} object with additional components
+\code{effective_sightings} (\code{r}), \code{effective_endpoint} (\code{t[r]}, on the
+original time scale) and, if \code{test_year} is given, \code{p_value}; or (if
+\code{data_out = TRUE}) a data frame with columns \code{time} and \code{chance}
+(p-values).
 }
 \description{
-Modifies the constant-rate Solow model by assigning a reliability in
-\verb{[0, 1]} to each occupied sighting time. Implements equations 4, 6, and
-8-10 of Jaric & Roberts (2014), returning the reliability-adjusted point
-estimate and upper confidence bound.
+Modifies the constant-rate Solow (1993a) model by assigning a reliability
+\code{p[i]} in \verb{[0, 1]} to each sighting. The number of sightings is replaced by
+the effective number \code{r = sum(p[i])} (equation 4 of Jaric & Roberts, 2014)
+and the last sighting time by its expectation \code{t[r]} over which record is
+the last valid one (equations 5-6). The point estimate is
+\code{(r + 1) / r * t[r]} (equation 9) and the upper confidence bound is
+\code{t[r] / alpha^(1 / r)} (equation 10). For a candidate time \code{T}, the
+modified Solow p-value is \code{(t[r] / T)^r} (equations 7-8), with times
+measured from the observation origin.
+}
+\details{
+The earliest supplied time defines the observation origin. A sighting at
+that time fixes the origin and does not enter \code{r} or \code{t[r]}, so its
+reliability is not used; prepend a zero-count row to include it.
+Reliabilities given for zero-count rows are ignored.
 }
 \references{
 Jaric, I., & Roberts, D. L. (2014). Accounting for observation reliability

@@ -1,21 +1,35 @@
 #' Optimal Linear Estimation of extinction date
 #'
-#' Estimates the extinction date from the sighting times with a positive
-#' count, using the best linear unbiased estimator (BLUE) of Roberts & Solow
-#' (2003) under a Weibull-type record-value model for the spacing of the
-#' largest order statistics.
+#' Estimates the extinction date by optimal linear estimation (Cooke, 1980),
+#' as applied by Roberts & Solow (2003). The joint distribution of the `k`
+#' most recent sighting times (the extreme order statistics) is assumed to
+#' have the Weibull extreme-value form; the estimate is the weighted sum of
+#' those times given by equations 12-15 of Solow (2005).
+#'
+#' The confidence interval is the two-sided `1 - alpha` interval of Roberts &
+#' Solow (2003). Its upper limit does not exist when `-log(alpha / 2) >= k`;
+#' it is then returned as `Inf` with a warning. [solow2005()] inverts the
+#' corresponding test one-sidedly (Solow, 2005, equation 17), so its bound at
+#' level `alpha` equals the upper limit here at level `2 * alpha`.
 #'
 #' @param sd A [sighting_data] object.
 #' @param alpha Significance level for the confidence interval, in (0, 1).
 #' @param k Number of most recent sighting events to use. Counts greater than
-#'   one are treated as independent events at the recorded time. By default,
-#'   all sighting events are used. Must be at least 3.
+#'   one are treated as independent events at the recorded time; Solow (2005)
+#'   recommends combining sightings that are obviously related. By default,
+#'   all sighting events are used. Must be at least 3; Solow (2005) suggests
+#'   at least 5, and notes that the extreme-value approximation may fail if
+#'   `k` is too large.
 #'
 #' @return An [ede_estimate] object.
 #'
 #' @references
+#' Cooke, P. (1980). Optimal linear estimation of bounds of random variables.
+#'   Biometrika, 67(1), 257-258.
+#'
 #' Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the
 #'   dodo become extinct? Nature, 426(6964), 245.
+#'
 #' Solow, A. R. (2005). Inferring extinction from a sighting record.
 #'   Mathematical Biosciences, 195(1), 47-55.
 #'
@@ -64,7 +78,14 @@ ole <- function(sd, alpha = 0.05, k = NULL) {
   sl <- (-log(1 - alpha / 2) / k)^(-v)
   su <- (-log(alpha / 2) / k)^(-v)
   lower <- t1 + span / (sl - 1)
-  upper <- t1 + span / (su - 1)
+  upper <- if (su > 1) t1 + span / (su - 1) else Inf
+  if (is.infinite(upper)) {
+    warning(
+      "the upper confidence limit does not exist for k = ", k,
+      " at this alpha (it requires -log(alpha / 2) < k); returning Inf.",
+      call. = FALSE
+    )
+  }
 
   new_ede_estimate(estimate, lower, upper, method = "OLE (Roberts & Solow 2003)", alpha = alpha)
 }

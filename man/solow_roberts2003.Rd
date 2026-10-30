@@ -9,24 +9,32 @@ solow_roberts2003(sd, alpha = 0.05, test_year, data_out = FALSE)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be supplied as a number.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}. The latter contains p-values; the column
-name is retained for compatibility with EDE 0.1.0.
+An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
+upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
+columns \code{time} and \code{chance} (p-values).
 }
 \description{
 Tests the null hypothesis that a species persisted to a candidate time
 using only the two most recent distinct sighting times. For candidate time
-\code{T}, the p-value is \code{(t[n] - t[n-1]) / (T - t[n-1])}.
+\code{T}, the p-value is \code{(t[n] - t[n-1]) / (T - t[n-1])} (equation 4 of the
+source paper). It is exact for a constant sighting rate and asymptotically
+correct otherwise.
+}
+\details{
+The paper derives the test from the Robson & Whitlock (1964) interval;
+inverting it gives the one-sided upper confidence bound
+\code{t[n] + (t[n] - t[n-1]) (1 - alpha) / alpha}, returned as \code{upper}. It is
+the same bound as \code{\link[=robson1964]{robson1964()}}.
 }
 \references{
 Solow, A. R., & Roberts, D. L. (2003). A nonparametric test for extinction

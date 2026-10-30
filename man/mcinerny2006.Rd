@@ -9,35 +9,38 @@ mcinerny2006(sd, alpha = 0.05, test_year, data_out = FALSE)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1).}
 
-\item{test_year}{Latest year to test. Must be later than the last
-sighting.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve instead of the upper
+bound.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}.
+An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
+upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
+columns \code{time} and \code{chance} (p-values).
 }
 \description{
-A modification of the Solow (1993) persistence test that conditions on
-the sighting rate observed up to the last sighting, \code{n / tn}, instead of
-on the length of the whole observation window. This makes the test
-comparable across records with very different total observation
-periods: species discovered recently and species discovered long ago,
-but sighted at the same rate, are inferred extinct after the same
-length of silence.
+A modification of the Solow (1993a) persistence test that conditions on
+the sighting rate observed up to the last sighting, \code{s = n / t[n]}, instead
+of on the length of the whole observation window. For candidate time \code{T},
+the p-value is \code{(1 - s)^(T - t[n])} (equation 2 of the source paper). This
+makes the test comparable across records with very different total
+observation periods.
 }
 \details{
-Following the source paper, the first sighting is used to anchor the
-time origin (\code{t = 0}) rather than counted as one of the \code{n} sighting
-events being tested, so the count entering the formula is \code{n - 1},
-where \code{n} is the number of distinct sighting times with a positive
-count.
+The record is treated as binary: \code{n} counts time units with at least one
+sighting, as in the source paper. The earliest supplied time defines the
+observation origin. If that time has a sighting, it is used as the start
+date and not counted, so \code{n} is reduced by one, as in the paper. If the
+record starts with a zero-count row, that row is the known start date and
+every sighting time is counted.
+
+The model is in whole time units, so the returned upper bound is the first
+time unit after the last sighting at which persistence is rejected, which
+is how the paper itself reports the test (Fig. 1).
 }
 \references{
 McInerny, G. J., Roberts, D. L., Davy, A. J., & Cribb, P. J. (2006).

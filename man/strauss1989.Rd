@@ -16,9 +16,19 @@ An \link{ede_estimate} object containing the unbiased point estimate and
 a one-sided confidence interval.
 }
 \description{
-Unbiased point estimator and classical confidence interval for the true
-endpoint of a temporal range, derived from the distribution of the sample
-range under a uniform occurrence model.
+Unbiased point estimator and classical one-sided confidence interval for
+the true endpoint of a temporal range, assuming finds are uniformly
+distributed between the true endpoints. With \code{n} finds spanning the range
+\code{y} to \code{z}, the estimate is \code{z + (z - y) / (n - 1)} (equation 8 of the
+source paper) and the interval is \verb{(z, z + c (z - y))} with
+\code{c = alpha^(-1 / (n - 1)) - 1} (equations 13, 16 and 20).
+}
+\details{
+Each distinct sighting time is one find, as each fossil horizon is in the
+paper; counts are ignored. The paper's model is continuous, so with dense
+yearly records the unbiasedness and the coverage hold only approximately.
+Both endpoints are estimated from the data, so the observation origin (a
+leading zero-count row) is not used.
 }
 \references{
 Strauss, D., & Sadler, P. M. (1989). Classical confidence intervals and

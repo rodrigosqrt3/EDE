@@ -9,28 +9,45 @@ jaric2010(sd, alpha = 0.05, test_year, data_out = FALSE, trend = TRUE)
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be supplied as a number.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
 
 \item{trend}{Logical. If \code{TRUE} (the default), adjust the average interval
-by the mean change in consecutive interval lengths.}
+by the trend coefficient (equations 5-6 and 8).}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}. The latter contains index p-values; the
-column name is retained for compatibility with EDE 0.1.0.
+An \link{ede_estimate} object with \code{estimate = NA}, the one-sided upper
+bound in \code{upper}, and additional components \code{average_interval} and
+\code{trend_coefficient}; or (if \code{data_out = TRUE}) a data frame with columns
+\code{time} and \code{chance} (index values) carrying the same two quantities as
+attributes.
 }
 \description{
-Tests persistence from the average interval between distinct sighting times,
-optionally adjusted by the mean trend in consecutive interval lengths. The
-trend-adjusted calculation implements equations 5-6 of Jaric & Ebenhard
-(2010); \code{trend = FALSE} implements equations 3-4.
+Index of persistence from the average interval \code{I} between distinct
+sighting times, optionally adjusted by the trend coefficient \code{c}. For
+candidate time \code{T}, the index is \code{I / (I + T - t[n])} (equations 3-4 of
+Jaric & Ebenhard, 2010) or, with \code{trend = TRUE},
+\code{(I + c) / (I + c + T - t[n])} (equations 5-6). The paper calls this the
+probability that the species is still present; it is an index rather than
+a p-value from a fitted probability model.
+}
+\details{
+Several sightings in one time unit count as one sighting, as in the paper.
+\code{I} is the mean interval between the first and last sighting times, so the
+observation origin is not used. \code{c} is the mean change in consecutive
+interval lengths, which reduces to the difference between the last and
+first intervals divided by \code{n - 2}; it is positive when sightings become
+less frequent.
+
+The returned upper bound is \code{t[n] + (I + c) (1 - alpha) / alpha}, the upper
+bound of the confidence interval in equations 7-8 of the paper (\code{c = 0}
+when \code{trend = FALSE}).
 }
 \references{
 Jaric, I., & Ebenhard, T. (2010). A method for inferring extinction based

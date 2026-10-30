@@ -13,10 +13,13 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 
 ## Overview
 
-EDE implements eleven procedures for inference about extinction from sighting
-records. Some estimate an endpoint directly; others test whether a species
-could plausibly have persisted to a candidate time. The latter return
-frequentist p-values, not posterior probabilities that the species is extant.
+EDE implements methods for inference about extinction from sighting records
+and fossil ranges. Some estimate an endpoint directly; others test whether a
+species could plausibly have persisted to a candidate time. The tests return
+frequentist p-values, not posterior probabilities that the species is extant;
+the Bayesian models later in this vignette give those.
+Their source papers define no point estimate, so EDE reports the one-sided
+upper confidence bound obtained by inverting each test.
 
 The column containing these p-values is currently named `chance` for
 compatibility with EDE 0.1.0.
@@ -34,15 +37,20 @@ sd <- sighting_data(data.frame(year = years, sightings = counts))
 
 The earliest supplied time defines the observation origin. Include an initial
 zero-count row if observation began before the first sighting. Methods differ
-in their treatment of counts: OLE treats counts as independent events,
-constant-rate Solow uses occupied times, and Burgman uses full frequencies.
+in their treatment of counts, following their source papers: OLE, the
+Weibull test, both Solow (1993) tests and Burgman's tests count every
+sighting event; the Robson-Whitlock, Strauss-Sadler, McInerny,
+Solow-Roberts and Jarić-Ebenhard methods use only distinct sighting times.
+Strauss-Sadler, Solow-Roberts and Jarić-Ebenhard do not use the observation
+origin at all.
 
 ## Endpoint estimators
 
-`robson1964()` uses the final gap for a jackknife point estimate and a
-one-sided confidence interval. `strauss1989()` supplies an unbiased endpoint
-estimate and one-sided interval under uniform occurrence. `ole()` fits the
-Weibull extreme-value model to the `k` most recent sighting events.
+`robson1964()` uses the final gap for a Quenouille-type bias-reduced point
+estimate and a one-sided confidence interval. `strauss1989()` supplies an
+unbiased endpoint estimate and one-sided interval under uniform occurrence.
+`ole()` fits the Weibull extreme-value model to the `k` most recent sighting
+events and reports the two-sided interval of Roberts & Solow (2003).
 
 ```{r}
 robson1964(sd)
@@ -64,28 +72,51 @@ jaric2010(sd, test_year = 2000)
 ```
 
 - `solow1993()` assumes a stationary Poisson process.
-- `solow1993b()` allows an exponentially declining sighting rate.
+- `solow1993b()` allows an exponentially declining sighting rate. Its upper
+  bound may not exist: the p-value has a positive floor however late the
+  candidate time.
 - `solow2005()` uses the Weibull extreme-value p-value associated with OLE.
+  Its bound is one-sided, so it equals the upper limit of `ole()` at twice
+  the significance level.
 - `mcinerny2006()` conditions on the previous binary sighting rate.
-- `burgman1995()` tests the longest run of empty discrete periods.
-- `solow_roberts2003()` uses only the two most recent distinct sightings.
+- `burgman1995()` uses discrete periods. By default it applies equation 2,
+  the test for extinction based on the final run of empty periods;
+  `equation = 4` tests for a change in conservation status using the longest
+  empty run anywhere in the record.
+- `solow_roberts2003()` uses only the two most recent distinct sightings; its
+  bound coincides with that of `robson1964()`.
 - `jaric2010()` uses the average interval and can adjust it for a trend in
-  consecutive interval lengths.
+  consecutive interval lengths. It is an index rather than a formal test.
 
 The full p-value curve is available with `data_out = TRUE`:
 
 ```{r}
 curve <- jaric2010(sd, test_year = 2000, data_out = TRUE)
 plot(curve$time, curve$chance, type = "l",
-     xlab = "candidate time", ylab = "p-value")
+     xlab = "candidate time", ylab = "index")
 abline(h = 0.05, lty = 2)
 ```
 
-## Records of variable reliability
+## A Bayesian view
 
-`jaric_roberts2014()` assigns a probability of validity to every occupied
-time. The current implementation requires binary counts because reliability
-belongs to individual observations.
+Under the constant-rate model, `solow1993_bayes()` gives the Bayes factor of
+Solow (1993a) in favour of persistence to a candidate time, assuming a
+uniform prior on the extinction time and a noninformative prior on the
+sighting rate. Combined with a prior probability of persistence, it gives the
+posterior probability that the species is extant, which is the quantity the
+p-values above do not provide.
+
+```{r}
+solow1993_bayes(sd, test_year = 2000, prior = 0.5)
+```
+
+## Uncertain sightings
+
+`jaric_roberts2014()` assigns a probability of validity to every sighting.
+EDE requires binary counts because reliability belongs to individual
+records; this is a package restriction, not one of the source paper. A
+sighting at the observation origin fixes the origin and its reliability is
+not used.
 
 ```{r}
 uncertain <- sighting_data(data.frame(
@@ -100,8 +131,66 @@ jaric_roberts2014(
 ```
 
 The result includes the effective number of sightings and the
-reliability-adjusted endpoint as additional components. Reliabilities should
+reliability-adjusted endpoint as additional components. Supply `test_year`
+to add the reliability-adjusted p-value of equations 7-8. Reliabilities should
 be elicited independently of the extinction analysis.
+
+Other approaches to uncertain sightings:
+
+- `thompson2013()` handles several observation types (for example specimens,
+  expert sightings and local reports), each with its own range of detection
+  and validity probabilities, in discrete time.
+- `brook2019()` resamples the record, keeping each sighting with probability
+  equal to its reliability, and applies any EDE estimator to every
+  sub-record. Solow (2023) criticised the statistical properties of the
+  resulting date; the authors present it as pre-processing rather than an
+  estimator, and its help page discusses both views.
+
+## Other Bayesian models
+
+`rout2009()` generalises the Solow (1993a) Bayes factor to a sighting rate
+that declines as a power of time, and `rout2009_absences()` turns it into a
+decision rule: the number of consecutive absent surveys after which declaring
+eradication minimises the expected cost. `caley_barry2014()` models yearly
+detections with constant detection and extinction probabilities; its
+posterior is computed exactly:
+
+```{r}
+fox <- sighting_data(data.frame(year = c(2001, 2003, 2005, 2006), count = 1))
+caley_barry2014(fox, test_year = 2012)
+```
+
+## Records and surveys
+
+`thompson2017()` implements the iterative model of Thompson et al. (2017),
+which underlies the IUCN Red List tool for estimating the probability that a
+taxon is extinct. Each year contributes either a record, with a probability
+of being correct, or a survey that failed to find the species, described by
+its extent, its chance of detecting the species and its reliability. Ranges
+for these quantities give interval and Monte Carlo bounds. `thompson2019()`
+casts the same data as Bayesian updating, in which each year's posterior is
+the next year's prior.
+
+## Fossil ranges
+
+The same question arises for the last appearance of a taxon in the fossil
+record. `strauss1989()` assumes fossil horizons are uniformly distributed;
+`marshall1994()` drops that assumption and bounds the confidence interval
+using only the distribution of gap sizes, with `marshall1994_trend()` to test
+whether gap size changes through the section; `marshall1997()` accepts a
+fossil recovery potential that varies through the section; and
+`weiss_marshall1999()` gives a Bayesian estimate for sections sampled at
+discrete horizons, with absences recorded. EDE always estimates the end-point
+at the largest `time`, so ages in millions of years should be entered as
+`time = -age`, and first appearances as negative stratigraphic positions.
+
+## Comparing methods
+
+`ede_compare()` applies every method that needs only the sighting record:
+
+```{r}
+ede_compare(sighting_data(monk_seal), test_year = 2050)
+```
 
 ## Choosing a method
 
@@ -110,9 +199,15 @@ be elicited independently of the extinction analysis.
 - Use `solow1993()` only when a constant sighting rate is plausible.
 - Use `solow1993b()` for an approximately exponential decline.
 - Use `jaric2010()` when the intervals themselves show a gradual trend.
-- Use `burgman1995()` for discrete frequency data and longest-run questions.
+- Use `burgman1995()` for discrete frequency data; use `equation = 4` only
+  for questions about a change in status.
 - Use `jaric_roberts2014()` when observations have explicit reliability
-  assessments.
+  assessments, and `thompson2013()` when they fall into types with uncertain
+  detection probabilities.
+- Use `thompson2017()` when unsuccessful surveys are documented, as in an
+  IUCN Red List assessment.
+- Use the Bayesian models when a posterior probability that the species is
+  extant is needed; report the prior alongside it.
 
 Running several scientifically defensible methods is useful, but p-values from
 models whose assumptions are violated should not be combined or interpreted as
@@ -120,8 +215,16 @@ extinction probabilities.
 
 ## References
 
+References for the methods introduced after the core estimators (Rout et
+al. 2009; Thompson et al. 2013, 2017, 2019; Caley & Barry 2014; Brook et al.
+2019; Marshall 1994, 1997; Weiss & Marshall 1999) are given on the help page
+of each function.
+
 Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat from
 scientific collections. *Conservation Biology*, 9(4), 923-928.
+
+Cooke, P. (1980). Optimal linear estimation of bounds of random variables.
+*Biometrika*, 67, 257-258.
 
 Jarić, I., & Ebenhard, T. (2010). A method for inferring extinction based on
 sighting records that change in frequency over time. *Wildlife Biology*,
@@ -141,10 +244,10 @@ Roberts, D. L., & Solow, A. R. (2003). When did the dodo become extinct?
 Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation point.
 *Biometrika*, 51, 33-39.
 
-Solow, A. R. (1993). Inferring extinction from sighting data. *Ecology*, 74,
+Solow, A. R. (1993a). Inferring extinction from sighting data. *Ecology*, 74,
 962-964.
 
-Solow, A. R. (1993). Inferring extinction in a declining population.
+Solow, A. R. (1993b). Inferring extinction in a declining population.
 *Journal of Mathematical Biology*, 32, 79-82.
 
 Solow, A. R. (2005). Inferring extinction from a sighting record.

@@ -1,17 +1,33 @@
 #' Jaric & Ebenhard (2010) sighting-trend index
 #'
-#' Tests persistence from the average interval between distinct sighting times,
-#' optionally adjusted by the mean trend in consecutive interval lengths. The
-#' trend-adjusted calculation implements equations 5-6 of Jaric & Ebenhard
-#' (2010); `trend = FALSE` implements equations 3-4.
+#' Index of persistence from the average interval `I` between distinct
+#' sighting times, optionally adjusted by the trend coefficient `c`. For
+#' candidate time `T`, the index is `I / (I + T - t[n])` (equations 3-4 of
+#' Jaric & Ebenhard, 2010) or, with `trend = TRUE`,
+#' `(I + c) / (I + c + T - t[n])` (equations 5-6). The paper calls this the
+#' probability that the species is still present; it is an index rather than
+#' a p-value from a fitted probability model.
+#'
+#' Several sightings in one time unit count as one sighting, as in the paper.
+#' `I` is the mean interval between the first and last sighting times, so the
+#' observation origin is not used. `c` is the mean change in consecutive
+#' interval lengths, which reduces to the difference between the last and
+#' first intervals divided by `n - 2`; it is positive when sightings become
+#' less frequent.
+#'
+#' The returned upper bound is `t[n] + (I + c) (1 - alpha) / alpha`, the upper
+#' bound of the confidence interval in equations 7-8 of the paper (`c = 0`
+#' when `trend = FALSE`).
 #'
 #' @inheritParams solow1993
 #' @param trend Logical. If `TRUE` (the default), adjust the average interval
-#'   by the mean change in consecutive interval lengths.
+#'   by the trend coefficient (equations 5-6 and 8).
 #'
-#' @return An [ede_estimate] object, or (if `data_out = TRUE`) a data frame
-#'   with columns `time` and `chance`. The latter contains index p-values; the
-#'   column name is retained for compatibility with EDE 0.1.0.
+#' @return An [ede_estimate] object with `estimate = NA`, the one-sided upper
+#'   bound in `upper`, and additional components `average_interval` and
+#'   `trend_coefficient`; or (if `data_out = TRUE`) a data frame with columns
+#'   `time` and `chance` (index values) carrying the same two quantities as
+#'   attributes.
 #'
 #' @references
 #' Jaric, I., & Ebenhard, T. (2010). A method for inferring extinction based
@@ -23,10 +39,7 @@ jaric2010 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
                       trend = TRUE) {
   stopifnot(inherits(sd, "sighting_data"))
   if (alpha <= 0 || alpha >= 1) stop("`alpha` must be in (0, 1).", call. = FALSE)
-  if (missing(test_year) || !is.numeric(test_year) ||
-      length(test_year) != 1L || is.na(test_year)) {
-    stop("`test_year` must be supplied as a number.", call. = FALSE)
-  }
+  check_test_year(test_year)
   if (length(trend) != 1L || !is.logical(trend) || is.na(trend)) {
     stop("`trend` must be TRUE or FALSE.", call. = FALSE)
   }
@@ -40,9 +53,7 @@ jaric2010 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
   }
 
   last_sight <- times[n]
-  if (test_year <= last_sight) {
-    stop("`test_year` must be later than the last sighting.", call. = FALSE)
-  }
+  check_test_year(test_year, last_sight)
 
   intervals <- diff(times)
   average_interval <- mean(intervals)
@@ -52,7 +63,7 @@ jaric2010 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
     stop("the average interval plus its trend must be positive.", call. = FALSE)
   }
 
-  candidates <- seq(last_sight + 1, test_year)
+  candidates <- candidate_times(last_sight, test_year)
   p_value <- adjusted_interval /
     (adjusted_interval + candidates - last_sight)
 
@@ -63,12 +74,9 @@ jaric2010 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
     return(out)
   }
 
-  below <- candidates[p_value <= alpha]
-  if (length(below) == 0L) {
-    warning("p-value never falls to alpha before `test_year`; returning NA.",
-            call. = FALSE)
-    return(new_ede_estimate(NA_real_, method = "Jaric & Ebenhard (2010)",
-                            alpha = alpha))
-  }
-  new_ede_estimate(below[1], method = "Jaric & Ebenhard (2010)", alpha = alpha)
+  bound <- last_sight + adjusted_interval * (1 - alpha) / alpha
+  result <- test_bound_result(bound, test_year, "Jaric & Ebenhard (2010)", alpha)
+  result$average_interval <- average_interval
+  result$trend_coefficient <- trend_coefficient
+  result
 }

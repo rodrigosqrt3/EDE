@@ -25,6 +25,40 @@ test_that("jaric_roberts2014 reduces to the Solow estimates at reliability one",
   expect_equal(res$upper, 1900 + 30 / 0.05^(1 / 3))
 })
 
+test_that("jaric_roberts2014 computes the p-value of equations 7-8", {
+  d <- sighting_data(data.frame(year = c(1900, 1910, 1920), sightings = 1))
+  res <- jaric_roberts2014(d, reliability = c(1, 0.8, 0.5), test_year = 1950)
+  # r = 1.3 and t[r] = 14, measured from the 1900 origin
+  expect_equal(res$p_value, (14 / 50)^1.3)
+  expect_equal(res$estimate, 1924.7692308, tolerance = 1e-7)
+
+  curve <- jaric_roberts2014(d, reliability = c(1, 0.8, 0.5),
+                             test_year = 1950, data_out = TRUE)
+  expect_named(curve, c("time", "chance"))
+  expect_equal(curve$time, 1921:1950)
+  expect_equal(curve$chance[curve$time == 1950], res$p_value)
+
+  # the p-value at the upper bound of equation 10 equals alpha
+  at_bound <- jaric_roberts2014(d, reliability = c(1, 0.8, 0.5),
+                                test_year = res$upper)
+  expect_equal(at_bound$p_value, 0.05)
+})
+
+test_that("jaric_roberts2014 reduces to Solow (1993a) at reliability one", {
+  d <- sighting_data(data.frame(year = c(1900, 1910, 1920, 1930), sightings = 1))
+  jr <- jaric_roberts2014(d, reliability = rep(1, 4), test_year = 1960,
+                          data_out = TRUE)
+  solow <- solow1993(d, test_year = 1960, data_out = TRUE)
+  expect_equal(jr$chance, solow$chance)
+})
+
+test_that("jaric_roberts2014 validates test_year", {
+  d <- sighting_data(data.frame(year = c(1900, 1910), sightings = 1))
+  expect_error(jaric_roberts2014(d, c(1, 1), data_out = TRUE), "required")
+  expect_error(jaric_roberts2014(d, c(1, 1), test_year = 1905), "later than")
+  expect_error(jaric_roberts2014(d, c(1, 1), test_year = "2000"), "test_year")
+})
+
 test_that("jaric_roberts2014 accepts row-aligned reliability", {
   d <- sighting_data(data.frame(
     year = c(1900, 1905, 1910, 1920),

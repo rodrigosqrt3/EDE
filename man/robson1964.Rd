@@ -16,9 +16,21 @@ confidence interval.}
 An \link{ede_estimate} object.
 }
 \description{
-Estimates the extinction date by jackknife bias correction of the most
-recent sighting. If the two most recent distinct sighting times are
-\code{t[n-1]} and \code{t[n]}, the estimate is \code{t[n] + (t[n] - t[n-1])}.
+Estimates the extinction date by a Quenouille (jackknife-type) bias
+reduction of the most recent sighting. If the two most recent distinct
+sighting times are \code{t[n-1]} and \code{t[n]}, the estimate is
+\code{t[n] + (t[n] - t[n-1])} and the one-sided upper confidence bound is
+\code{t[n] + (t[n] - t[n-1]) (1 - alpha) / alpha}.
+}
+\details{
+The estimator is mean-unbiased to order \code{n^-2} in general and exactly
+unbiased for a uniform distribution. The bound is exact for a uniform
+distribution and asymptotically valid when the density is continuous and
+positive at the endpoint; its coverage is below \code{1 - alpha} when the
+density decreases towards the endpoint, as with a declining sighting rate.
+
+Only distinct sighting times are used; counts are ignored, so the paper's
+order statistics are applied to distinct times.
 }
 \references{
 Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation

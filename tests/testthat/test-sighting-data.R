@@ -56,5 +56,5 @@ test_that("expand_record rejects a record with no positive sightings", {
 
 test_that("expand_record rejects end_time before the first sighting", {
   sd1 <- sighting_data(data.frame(a = c(1900, 1910), b = c(1, 1)))
-  expect_error(solow1993(sd1, 0.05, test_year = 1890), "cannot precede")
+  expect_error(burgman1995(sd1, 0.05, test_year = 1890), "cannot precede")
 })

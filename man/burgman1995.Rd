@@ -2,34 +2,100 @@
 % Please edit documentation in R/burgman1995.R
 \name{burgman1995}
 \alias{burgman1995}
-\title{Burgman, Grimson & Ferson (1995) combinatorial persistence test}
+\title{Burgman, Grimson & Ferson (1995) tests for frequency sighting data}
 \usage{
-burgman1995(sd, alpha = 0.05, test_year, data_out = FALSE)
+burgman1995(sd, alpha = 0.05, test_year, data_out = FALSE, equation = 2)
 }
 \arguments{
 \item{sd}{A \link{sighting_data} object.}
 
-\item{alpha}{Significance level, in (0, 1). Persistence is rejected for
-the first candidate year at which the p-value falls to
-or below \code{alpha}.}
+\item{alpha}{Significance level, in (0, 1). The returned upper bound is the
+earliest candidate time at which persistence is rejected at this level.}
 
-\item{test_year}{Latest year to test. Must be supplied as a number.}
+\item{test_year}{Latest time to test. Must be later than the last
+sighting. A bound beyond \code{test_year} is reported as \code{NA} with a warning.}
 
-\item{data_out}{If \code{TRUE}, return the full p-value curve
-instead of the single first-rejection year.}
+\item{data_out}{If \code{TRUE}, return the p-value curve at integer steps after
+the last sighting instead of the upper bound.}
+
+\item{equation}{Which equation of the source paper to use: \code{2} for
+extinction (the default), \code{3} (binary runs test) or \code{4} (frequency
+runs test) for a change in conservation status.}
 }
 \value{
-An \link{ede_estimate} object, or (if \code{data_out = TRUE}) a data frame
-with columns \code{time} and \code{chance}.
+An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
+upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
+columns \code{time} and \code{chance} (p-values).
 }
 \description{
-Computes the probability that, if sighting events were distributed
-uniformly at random over the candidate observation window, a run of empty
-periods at least as long as the largest observed run would occur. Uses an
-inclusion-exclusion (Stirling-number) argument on the occupancy of time bins
-by sighting events (equation 4 of the source paper).
+Exact tests for sighting records divided into \code{CT} equal periods, where \code{N}
+is the total number of sightings (all records counted, not only occupied
+periods).
+}
+\details{
+\itemize{
+\item \code{equation = 2} (the default) tests extinction. The p-value
+\code{(Ce / CT)^N}, where \code{Ce} is the period of the last sighting, is the
+probability that the species is not extinct; it is the empty-cells test
+restricted to the run of empty periods at the end of the record.
+\item \code{equation = 3} is the runs test of Bradley (1968) on the binary
+(occupied / empty) sequence of periods, so counts are ignored. With \code{n1}
+occupied periods out of \code{CT} and \code{r} the longest run of empty periods
+anywhere in the record, the probability of an empty run at least \code{r}
+long is
+\verb{sum_\{k=1\}^\{[n0/r]\} (-1)^(k+1) C(n1+1, k) C(CT - r k, n1) / C(CT, n1)},
+with \code{n0 = CT - n1} empty periods (inclusion-exclusion over the \code{n1 + 1}
+gaps that hold the empty periods). The equation is illegible in the
+source, so this form was reconstructed from its definitions and checked
+against the paper's numbers: it gives the Fig. 1b value 0.02885 and the
+Table 2 values for the black-footed ferret (0.003) and both stick-nest
+rats (0.139, 0.350). It does not give the Table 2 value for the monk seal
+(0.244 here against 0.258 in the paper, which equals the paper's
+equation 4 value; see Details). Like equation 4, it addresses a change in
+status rather than extinction.
+\item \code{equation = 4} tests for a change in conservation status (Grimson et al.,
+1992). It computes, by inclusion-exclusion over the occupancy of periods,
+the probability of a run of empty periods at least as long as the longest
+observed run anywhere in the record. Burgman et al. (1995, p. 927) note
+that it addresses a different question from extinction, and that a
+significant result may be discounted if the longest run is not near the
+end of the record.
+}
+
+As in the Caribbean monk seal example of the source paper (Fig. 1a and
+Tables 1-2), the earliest supplied time defines the observation origin and
+is not one of the \code{CT} periods; sightings recorded in that period are not
+counted. To include an earlier start date, prepend a zero-count row. The
+paper's black-footed ferret values (observation from January 1972)
+correspond to a zero-count row for 1971, so that 1972 is a period. Burgman
+et al. (2000, Table 2.1) used the same convention for Western Australian
+\emph{Acacia}: the year of the first collection is the first period and 1993
+the last; equations 2 and 4 reproduce their published values.
+
+For the monk seal, the origin convention above reproduces the paper's
+equation 2 (0.053) and equation 4 (0.258) values (\code{CT = 77}, \code{n1 = N = 4},
+\code{r = 40}), but equation 3 gives 0.244. No choice of \code{CT} and \code{r} near
+these values gives 0.258 exactly (\code{CT = 78} with \code{n1 = 4}, i.e. counting
+1915 as an empty period, gives 0.2587). Since all seal counts are 1, the
+paper's equal entries for equations 3 and 4 suggest that the equation 4
+value was reported for both.
+
+The paper defines only the tests. Since the periods are discrete, the
+returned upper bound is the first period after the last sighting at which
+the null hypothesis is rejected. Under \code{equation = 3} or \code{4} the p-value
+curve need not be monotone, so this bound should be read with the caveat
+above.
 }
 \references{
 Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat
 from scientific collections. Conservation Biology, 9(4), 923-928.
+
+Burgman, M. A., Maslin, B. R., Andrewartha, D., Keatley, M. R., Boek, C.,
+& McCarthy, M. (2000). Inferring threat from scientific collections:
+power tests and an application to Western Australian Acacia species. In
+S. Ferson & M. Burgman (Eds.), Quantitative Methods for Conservation
+Biology (pp. 7-26). Springer, New York.
+
+Bradley, J. V. (1968). Distribution-free statistical tests. Prentice-Hall,
+Englewood Cliffs, New Jersey.
 }
