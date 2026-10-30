@@ -14,7 +14,8 @@ Description: Infers the extinction of a species from a time-ordered record of
     Roberts, Davy & Cribb, 2006; Jarić & Ebenhard, 2010), Bayesian models
     (Rout, Salomon & McCarthy, 2009; Caley & Barry, 2014), methods for
     sightings of uncertain reliability (Thompson et al., 2013; Jarić &
-    Roberts, 2014; Brook, Buettel & Jarić, 2019), models combining records and
+    Roberts, 2014; Lee et al., 2014; Brook, Buettel & Jarić, 2019; Kodikara
+    et al., 2020, 2021), models combining records and
     surveys (Thompson et al., 2017, 2019), and confidence intervals on the
     end-points of fossil ranges (Marshall, 1994, 1997; Weiss & Marshall,
     1999). Every method is tested against the published examples of its

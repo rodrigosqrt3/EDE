@@ -216,6 +216,9 @@ solow1993_bayes(sd, test_year = 2000, prior = 0.5)
 |---|---|---|
 | `jaric_roberts2014()` | Jarić & Roberts (2014) | reliability-adjusted estimate + upper bound, p-value |
 | `thompson2013()` | Thompson et al. (2013) | probability of persistence with several observation types |
+| `lee2014()` | Lee et al. (2014) | posterior probability of persistence with certain and uncertain (false-positive) sightings |
+| `kodikara2020()` | Kodikara et al. (2020) | posterior of the extinction year from yearly certain and uncertain sightings |
+| `kodikara2021()` | Kodikara et al. (2021) | posterior of the extinction time under Weibull-rate Poisson processes with a change point |
 | `brook2019()` | Brook, Buettel & Jarić (2019) | resampling by reliability around any estimator |
 
 **Records and surveys**

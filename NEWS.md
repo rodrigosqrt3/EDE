@@ -25,6 +25,16 @@ where a paper's own numbers are inconsistent, the help page says so.
 - `thompson2013()`: probability of persistence with several observation types
   of uncertain detection probability (Thompson et al. 2013), with the
   annealed and quenched averages computed exactly.
+- `lee2014()`: probability of persistence from certain and uncertain sightings
+  with false positives (Lee et al. 2014), following the authors' OpenBUGS
+  model but computed exactly.
+- `kodikara2020()`: posterior of the extinction year from yearly certain and
+  uncertain sightings, Models 1-3 of Kodikara et al. (2020), computed exactly
+  instead of by MCMC.
+- `kodikara2021()`: extinction time when sightings follow non-homogeneous
+  Poisson processes with Weibull rates and a change point (Kodikara et al.
+  2021), by numerical integration. The default reproduces the paper with the
+  authors' likelihood; equation 9 as printed is available as an option.
 - `brook2019()`: resampling with sighting reliabilities as inclusion
   probabilities, around any estimator (Brook, Buettel & Jarić 2019).
 - `thompson2017()`: the iterative model of records and surveys behind the
