@@ -10,9 +10,10 @@ collects methods from the sighting-record and stratigraphic-range
 literature under one interface: endpoint estimators, frequentist persistence
 tests, Bayesian models, methods for sightings of uncertain reliability,
 models that combine records with surveys (including the model behind the
-IUCN Red List extinction-probability tool), and confidence intervals on the
-end-points of fossil ranges. Every method is tested against the published
-examples of its source paper.
+IUCN Red List extinction-probability tool), extreme-value end-point
+estimators with automatic choice of the number of recent sightings, and
+confidence intervals on the end-points of fossil ranges. Every method is
+tested against the published examples of its source paper.
 
 ## Installation
 
@@ -111,17 +112,35 @@ rejected. For the continuous-time methods this bound is computed exactly
 McInerny et al. and Burgman et al. it is the first rejected time unit. A
 bound beyond `test_year`, or one that does not exist, is returned as `NA`
 with a warning. Pass `data_out = TRUE` to get the p-value curve at integer
-steps up to `test_year`. For compatibility with version 0.1.0, that p-value
-is stored in a column currently named `chance`.
+steps up to `test_year`, in a column named `p_value` (the former name,
+`chance`, is a deprecated alias).
+
+## Extreme-value estimators
+
+`ole()`, `hall_wang1999()` and `fraga_alves_neves2014()` treat the last
+sightings as the extreme order statistics of the sighting-time distribution,
+whose end-point is the extinction time. All depend on `k`, the number of recent
+sightings, which `ede_select_k()` chooses by ordered goodness-of-fit tests
+with false-discovery-rate control.
+
+```r
+hall_wang1999(sd, k = 8)           # Weibull domain, exact confidence interval
+fraga_alves_neves2014(sd)          # Gumbel domain, closed form
+set.seed(1)
+ede_select_k(sd)$k                 # choose k from the data
+ede_endpoint_test(sd, k = 8)       # is a finite end-point supported?
+ede_evi(sd)                        # moment estimate of the index over k
+```
 
 ## Comparing methods
 
 `ede_compare()` applies every method that needs only the sighting record and
 returns one table. Methods that cannot be applied stay in the table with the
-reason in `note`.
+reason in `note`. `plot()` draws the table as a forest plot.
 
 ```r
-ede_compare(sighting_data(monk_seal), test_year = 2050)
+cmp <- ede_compare(sighting_data(monk_seal), test_year = 2050)
+plot(cmp)
 ```
 
 ## Example data
@@ -130,7 +149,12 @@ EDE bundles classic records from the literature, each reproducing its
 published example: `dodo` (Roberts & Solow 2003), `monk_seal` (Solow 1993a),
 `ferret` (Solow 1993b; Jarić & Ebenhard 2010), `orchid` (Solow & Roberts
 2003) and `extinct_birds`, four possibly extinct birds with sightings
-classified by evidence quality (Roberts et al. 2010; Jarić & Roberts 2014).
+classified by evidence quality (Roberts et al. 2010; Jarić & Roberts 2014),
+and `alaska_megafauna`, radiocarbon ages of Alaskan mammoths and horses with
+their dating errors (Solow, Roberts & Robbirt 2006), and `nz_shells`,
+radiocarbon ages of shells from New Zealand (Solow 1997), and
+`seymour_ammonites`, the ten uppermost ammonite taxa of Seymour Island
+(Solow 1996).
 
 ```r
 ole(sighting_data(dodo))
@@ -145,9 +169,9 @@ ole(sighting_data(dodo))
 curve_1993 <- solow1993(sd, test_year = 2000, data_out = TRUE)
 curve_2005 <- solow2005(sd, test_year = 2000, data_out = TRUE)
 
-plot(curve_1993$time, curve_1993$chance, type = "l",
+plot(curve_1993$time, curve_1993$p_value, type = "l",
      xlab = "candidate extinction year", ylab = "p-value")
-lines(curve_2005$time, curve_2005$chance, col = "firebrick")
+lines(curve_2005$time, curve_2005$p_value, col = "firebrick")
 ```
 
 The two curves diverge because they encode different models. `solow1993()`
@@ -188,6 +212,14 @@ solow1993_bayes(sd, test_year = 2000, prior = 0.5)
 | `ole()` | Roberts & Solow (2003) | point estimate + two-sided CI |
 | `robson1964()` | Robson & Whitlock (1964) | point estimate + one-sided CI |
 | `strauss1989()`, `strauss1989_curve()` | Strauss & Sadler (1989) | point estimate + one-sided CI / curve |
+| `hall_wang1999()` | Hall & Wang (1999) | minimum-distance end-point + exact two-sided CI |
+| `fraga_alves_neves2014()` | Fraga Alves & Neves (2014) | end-point for the Gumbel domain |
+| `dekkers1989()`, `ede_evi()` | Dekkers, Einmahl & de Haan (1989) | moment estimate of the extreme-value index and end-point |
+| `smith1985()` | Smith (1985) | likelihood end-point + profile-likelihood CI (regular range only) |
+| `ede_select_k()` | after Bader, Yan & Zhang (2018) | number of recent sightings `k` to use |
+| `vogel2009()`, `ede_field_test()` | Vogel et al. (2009) | PPCC test of a constant sighting rate; field significance over records |
+| `mccarthy1998()` | McCarthy (1998); Roberts & Jaric (2020) | Solow test adjusted for sampling effort, upper bound / p-value curve |
+| `ede_endpoint_test()` | Neves, Picek & Fraga Alves (2006); Hasofer & Wang (1992); Fraga Alves, Neves & Rosario (2016) | test of a finite end-point (Gumbel null) |
 
 **Persistence tests**
 
@@ -209,6 +241,7 @@ solow1993_bayes(sd, test_year = 2000, prior = 0.5)
 | `rout2009()`, `rout2009_absences()` | Rout, Salomon & McCarthy (2009) | Bayes factor under a declining sighting rate; surveys needed to declare eradication |
 | `caley_barry2014()` | Caley & Barry (2014) | posterior probability of persistence from yearly detections (exact constant model, or MCMC) |
 | `strauss1989_bayes()` | Strauss & Sadler (1989) | posterior mean + credible interval of the end-point |
+| `alroy2014()` | Alroy (2014) | iterative posterior probability of extinction ("shadow values"), best estimate and credible limits |
 
 **Uncertain sightings**
 
@@ -235,6 +268,16 @@ solow1993_bayes(sd, test_year = 2000, prior = 0.5)
 | `marshall1994()`, `marshall1994_trend()` | Marshall (1994) | distribution-free bounds on the CI; test for a trend in gap size |
 | `marshall1997()` | Marshall (1997) | one-sided CI under non-uniform recovery potential |
 | `weiss_marshall1999()` | Weiss & Marshall (1999) | Bayesian end-point for discretely sampled sections |
+| `solow1996()` | Solow (1996) | exact likelihood ratio test of a common end-point of several taxa, and confidence interval for it |
+
+**Dated remains with dating error**
+
+| Function | Reference | Output |
+|---|---|---|
+| `solow2006()` | Solow (1997); Solow, Roberts & Robbirt (2006) | maximum likelihood extinction (or settlement) time with normal dating error, profile-likelihood interval |
+| `solow2006_region()` | Solow, Roberts & Robbirt (2006) | joint confidence region for the extinction times of two taxa |
+| `solow2006_check()` | Solow, Roberts & Robbirt (2006) | simulation check of the uniform-age model |
+| `bradshaw2012()` | Bradshaw et al. (2012) | GRIWM: inverse-weighted McInerny estimate over the `k` latest records, resampled over the dating errors |
 
 For fossil data, the end-point estimated is always the one at the largest
 `time`: code ages as `time = -age`, and first appearances as negative
