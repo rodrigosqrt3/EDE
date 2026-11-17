@@ -21,8 +21,8 @@ the last sighting instead of the upper bound.}
 \value{
 An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
 upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
-columns \code{time} and \code{chance}. \code{chance} contains p-values; the column name
-is retained for compatibility with EDE 0.1.0.
+columns \code{time} and \code{p_value}. The column \code{chance}, the name used up to
+EDE 0.3.0, is a deprecated alias of \code{p_value}.
 }
 \description{
 Parametric test of the null hypothesis that a species was still extant at a

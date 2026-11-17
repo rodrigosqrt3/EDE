@@ -21,7 +21,8 @@ the last sighting instead of the upper bound.}
 \value{
 An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
 upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
-columns \code{time} and \code{chance} (p-values).
+columns \code{time} and \code{p_value} (plus \code{chance}, a deprecated alias of
+\code{p_value}).
 }
 \description{
 Tests the null hypothesis that a species persisted to a candidate time

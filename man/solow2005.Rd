@@ -27,7 +27,8 @@ at least 5.}
 \value{
 An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
 upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
-columns \code{time} and \code{chance} (p-values).
+columns \code{time} and \code{p_value} (plus \code{chance}, a deprecated alias of
+\code{p_value}).
 }
 \description{
 Tests persistence using the Weibull extreme-value model for the \code{k} most

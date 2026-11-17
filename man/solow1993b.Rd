@@ -22,8 +22,8 @@ the last sighting instead of the upper bound.}
 An \link{ede_estimate} object with the minimum variance unbiased
 estimate in \code{estimate} and the one-sided upper bound in \code{upper} (\code{NA},
 with a warning, if it does not exist before \code{test_year}), or (if
-\code{data_out = TRUE}) a data frame with columns \code{time} and \code{chance}
-(p-values).
+\code{data_out = TRUE}) a data frame with columns \code{time} and \code{p_value}
+(plus \code{chance}, a deprecated alias of \code{p_value}).
 }
 \description{
 Conditional test of the null hypothesis that a declining species was still
