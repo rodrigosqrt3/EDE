@@ -178,4 +178,14 @@ test_that("limits that do not exist are Inf, and the fit warns about it", {
   testthat::local_mocked_bindings(sr_limits = function(...) c(-12, Inf))
   expect_warning(res <- solow2006(d), "upper confidence limit does not exist")
   expect_identical(res$upper, Inf)
+  # the joint region then extends each axis beyond the estimate
+  testthat::local_mocked_bindings(
+    sr_limits = function(fit, x, s, crit) c(fit$theta - 1, Inf)
+  )
+  h <- alaska("horse")
+  reg <- solow2006_region(m$sd, h$sd, m$error, h$error, n = 10)
+  expect_identical(reg$fit1$upper, Inf)
+  expect_true(all(is.finite(reg$grid$theta1)))
+  expect_gt(max(reg$grid$theta1), reg$fit1$estimate)
+  expect_gt(max(reg$grid$theta2), reg$fit2$estimate)
 })

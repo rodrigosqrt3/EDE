@@ -146,6 +146,13 @@ classes.
   column `p_value`. The former name, `chance`, is kept as an alias and will be
   removed in a future release.
 
+## Bug fixes
+
+- `hall_wang1999()` no longer fails in `uniroot()` when Greenwood's statistic
+  is above the critical value over the whole search grid and below it only in
+  the limit at infinity. The interval then starts at the end of the grid and
+  has no upper limit (`Inf`, with the usual warning).
+
 ## Documentation
 
 - The `r = ...` examples in three help pages no longer trigger roxygen's

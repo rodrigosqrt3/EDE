@@ -35,6 +35,12 @@ test_that("print.ede_estimate omits the missing estimate of a persistence test",
   expect_match(out[2], "95% upper confidence bound")
 })
 
+test_that("print.ede_estimate labels a two-sided credible interval", {
+  res <- new_ede_estimate(10, lower = 5, upper = 15, method = "x", alpha = 0.05)
+  res$interval_kind <- "credible"
+  expect_output(print(res), "95% credible interval: \\[5, 15\\]")
+})
+
 test_that("print.ede_estimate prints a standalone upper confidence bound", {
   d <- sighting_data(data.frame(year = c(1900, 1910, 1920), sightings = 1))
   res <- jaric_roberts2014(d, reliability = c(1, 0.8, 0.5))

@@ -170,6 +170,20 @@ test_that("prior, Bayes factor and output structure", {
              fit$extinction_year[["upper"]] - fit$extinction_year[["lower"]])
 })
 
+test_that("a posterior of persistence equal to 1 gives an infinite Bayes factor", {
+  orig <- EDE:::kodikara2020_posterior
+  testthat::local_mocked_bindings(
+    kodikara2020_posterior = function(yc, yu, model) {
+      f <- orig(yc, yu, model)
+      f$w <- c(rep(0, length(f$w) - 1L), 1)
+      f
+    }
+  )
+  fit <- kodikara2020(k20_sd(c(1, 2, 4)), test_year = 9)
+  expect_equal(fit$posterior, 1)
+  expect_identical(fit$bayes_factor, Inf)
+})
+
 test_that("uncertain sightings in certain years are censored", {
   c_sd <- k20_sd(c(1, 2, 4))
   a <- kodikara2020(c_sd, k20_sd(c(3, 6)), test_year = 9, model = 2)

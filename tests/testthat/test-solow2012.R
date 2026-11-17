@@ -203,6 +203,19 @@ test_that("exponential prior matches its quantile and allows increasing densitie
   expect_equal(f$bayes_factor, a$bayes_factor, tolerance = 1e-6)
 })
 
+test_that("the omega integral keeps the grid maximum when optimize falls short", {
+  # an isolated maximum (0) at one grid point and -1 elsewhere: optimize()
+  # never evaluates that point, so the grid value is kept as the maximum
+  p0 <- seq(0.0025, 0.9975, by = 0.0025)[200]
+  testthat::local_mocked_bindings(
+    uncertain_logf = function(w, tau, k, spec) ifelse(w == p0, 0, -1)
+  )
+  spec <- list(certain_power = 0, a = 1, n = 0, L = 0)
+  rec <- list(u_count = numeric(0), u_time = numeric(0))
+  # log(fmax) + log(integral of exp(f - fmax)) = 0 + log(exp(-1)) = -1
+  expect_equal(EDE:::uncertain_loglik(1, rec, spec), -1, tolerance = 1e-8)
+})
+
 test_that("uncertain-sighting methods validate their inputs", {
   r <- ibw2012()
   expect_error(solow2012_bayes(r$certain, r$uncertain, 2010, prior = 1), "prior")

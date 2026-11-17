@@ -59,6 +59,9 @@ test_that("plot methods draw without error and return their argument", {
   set.seed(1)
   sel <- ede_select_k(sd, nsim = 49)
   expect_identical(plot(sel), sel)
+  # a lower limit without an upper one
+  lo_only <- new_ede_estimate(10, lower = 5, method = "x", alpha = 0.05)
+  expect_identical(plot(lo_only), lo_only)
 })
 
 test_that("plot errors clearly when there is nothing to draw", {

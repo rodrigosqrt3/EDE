@@ -134,6 +134,12 @@ test_that("marshall1994_trend detects monotone gap sequences", {
   expect_equal(tr$transpositions, tr$t_max)
   expect_identical(tr$direction, "decreasing")
   expect_lt(tr$p_value, 0.01)
+  # equal gaps: T = 3 * 2 / 4 = 1.5 = T_max / 2, no trend
+  flat <- sighting_data(data.frame(time = 0:3, count = 1))
+  tr <- marshall1994_trend(flat)
+  expect_equal(tr$transpositions, tr$t_max / 2)
+  expect_identical(tr$direction, "none")
+  expect_equal(tr$p_value, 1)
 })
 
 test_that("marshall1994 uses distinct horizons by default and validates input", {

@@ -77,6 +77,16 @@ test_that("constant model matches brute-force integration of the equations", {
   expect_equal(res$bayes_factor, odds(res$posterior) / odds(res$prior))
 })
 
+test_that("constant-model internals: a sighting in the last period", {
+  # not reachable from caley_barry2014(), whose test_year must be later than
+  # the last sighting; the internal then leaves no extinction period
+  fit <- EDE:::caley_barry_constant(c(0, 1, 0, 1), c(1.1, 1.1), c(1.1, 1.1),
+                                    shift = 1)
+  expect_equal(fit$posterior, 1)
+  expect_identical(fit$bayes_factor, Inf)
+  expect_equal(nrow(fit$extinction_time), 0L)
+})
+
 test_that("non-constant model reproduces the published results", {
   skip_on_cran()
   # Results: r median -0.28 (-0.72 to -0.04); d 1.92 (0.48-4.3);

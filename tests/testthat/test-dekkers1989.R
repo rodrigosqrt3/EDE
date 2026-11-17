@@ -76,6 +76,11 @@ test_that("ede_evi is a data frame over k, with print and plot", {
   one <- suppressWarnings(dekkers1989(sd, k = r$k[2]))
   expect_equal(r$gamma[2], one$gamma)
   expect_output(print(r), "extreme-value index")
+  # a user-supplied kmax, and a non-numeric column added by the user
+  short <- suppressWarnings(ede_evi(sd, kmax = r$k[3]))
+  expect_equal(max(short$k), r$k[3])
+  short$note <- "user"
+  expect_output(print(short), "user")
   pdf(NULL)
   on.exit(dev.off())
   expect_silent(plot(r))

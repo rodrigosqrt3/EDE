@@ -54,6 +54,21 @@ test_that("one-sided p-values are complementary and two-sided is twice the min",
                                                   i$table$p_value)))
 })
 
+test_that("Hasofer-Wang p-values for every alternative, and their printing", {
+  f <- ede_endpoint_test(ex, k = 6, test = "hasofer_wang",
+                         alternative = "finite", nsim = 1e4)
+  i <- ede_endpoint_test(ex, k = 6, test = "hasofer_wang",
+                         alternative = "infinite", nsim = 1e4)
+  tw <- ede_endpoint_test(ex, k = 6, test = "hasofer_wang",
+                          alternative = "two.sided", nsim = 1e4)
+  expect_equal(f$table$p_value + i$table$p_value, 1)
+  expect_equal(tw$table$p_value, min(1, 2 * min(f$table$p_value,
+                                                  i$table$p_value)))
+  expect_output(print(f), "finite end-point \\(Weibull domain\\)")
+  expect_output(print(i), "unbounded upper tail \\(Frechet domain\\)")
+  expect_output(print(tw), "not the Gumbel domain")
+})
+
 test_that("size is controlled under an exponential tail", {
   skip_on_cran()
   set.seed(5)

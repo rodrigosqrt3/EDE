@@ -78,4 +78,5 @@ test_that("a flat top is refused and rejection at every k is reported", {
     "rejected for every"
   )
   expect_true(is.na(sel$k))
+  expect_output(print(sel), "selected k: none")
 })

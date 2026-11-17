@@ -95,6 +95,12 @@ test_that("thompson2013 validates its inputs", {
   expect_error(thompson2013(seal13(), test_year = 1952, p = 0.9), "later than")
   u <- sighting_data(data.frame(year = 2015, n = 1))
   expect_error(thompson2013(seal13(), u, 2011, p = c(0.9, 0.9), q = 0.9), "precede")
+  # q: one element per uncertain type, and a probability in (0, 1]
+  u0 <- sighting_data(data.frame(year = 1960, n = 1))
+  expect_error(thompson2013(seal13(), u0, 2011, p = c(0.9, 0.9), q = c(0.5, 0.5)),
+               "one element per uncertain observation type")
+  expect_error(thompson2013(seal13(), u0, 2011, p = c(0.9, 0.9), q = 1.5),
+               "probability in \\(0, 1\\]")
   frac <- sighting_data(data.frame(year = c(1.5, 3), n = 1))
   expect_error(thompson2013(frac, test_year = 5, p = 0.9), "whole")
 })

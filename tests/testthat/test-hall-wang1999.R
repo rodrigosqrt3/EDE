@@ -133,3 +133,15 @@ test_that("a flat top is refused and an empty interval is reported", {
   )
   expect_true(is.na(res$lower) && is.na(res$upper))
 })
+
+test_that("an interval that only starts beyond the grid is returned, not an error", {
+  # gaps whose statistic stays above its limit at infinity over the whole
+  # grid; a critical value between the two leaves only the limit inside
+  g <- c(0, 9.74, 76.34, 96.08, 112.85, 137, 137.63)
+  grid <- EDE:::hw_grid(g)
+  st <- EDE:::hw_stat(grid, g)
+  inf <- EDE:::hw_stat_inf(g)
+  expect_true(all(st > inf))
+  crit <- (min(st) + inf) / 2
+  expect_equal(EDE:::hw_interval(g, NULL, crit), c(grid[length(grid)], Inf))
+})

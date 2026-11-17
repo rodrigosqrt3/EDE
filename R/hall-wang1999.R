@@ -252,9 +252,12 @@ hw_interval <- function(g, fit, crit) {
   ok <- which(stat < crit)
   inf_ok <- hw_stat_inf(g) < crit
   if (!length(ok) && !inf_ok) return(c(NA_real_, NA_real_))
+  # only the limit at infinity is below the critical value: the interval
+  # starts beyond the end of the grid, which is returned as its lower end
+  if (!length(ok)) return(c(grid[length(grid)], Inf))
   f <- function(ls) hw_stat(exp(ls), g) - crit
-  first <- if (length(ok)) ok[1L] else length(grid)
-  last <- if (length(ok)) ok[length(ok)] else length(grid)
+  first <- ok[1L]
+  last <- ok[length(ok)]
   lower <- if (first == 1L) 0 else
     exp(stats::uniroot(f, log(grid[c(first - 1L, first)]), tol = 1e-12)$root)
   upper <- if (last == length(grid) || (inf_ok && last >= length(grid))) Inf else
