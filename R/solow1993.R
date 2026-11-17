@@ -25,8 +25,8 @@
 #'
 #' @return An [ede_estimate] object with `estimate = NA` and the one-sided
 #'   upper bound in `upper`, or (if `data_out = TRUE`) a data frame with
-#'   columns `time` and `chance`. `chance` contains p-values; the column name
-#'   is retained for compatibility with EDE 0.1.0.
+#'   columns `time` and `p_value`. The column `chance`, the name used up to
+#'   EDE 0.3.0, is a deprecated alias of `p_value`.
 #'
 #' @references
 #' Solow, A. R. (1993a). Inferring extinction from sighting data. Ecology,
@@ -54,7 +54,7 @@ solow1993 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
     chance <- vapply(candidates, function(t) {
       solow1993_chance(full[full$time <= t, , drop = FALSE])
     }, numeric(1))
-    return(data.frame(time = candidates, chance = chance))
+    return(p_curve(candidates, chance))
   }
 
   n <- solow_event_count(sd)

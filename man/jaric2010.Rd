@@ -25,8 +25,8 @@ by the trend coefficient (equations 5-6 and 8).}
 An \link{ede_estimate} object with \code{estimate = NA}, the one-sided upper
 bound in \code{upper}, and additional components \code{average_interval} and
 \code{trend_coefficient}; or (if \code{data_out = TRUE}) a data frame with columns
-\code{time} and \code{chance} (index values) carrying the same two quantities as
-attributes.
+\code{time} and \code{p_value} (index values; \code{chance} is a deprecated alias)
+carrying the same two quantities as attributes.
 }
 \description{
 Index of persistence from the average interval \code{I} between distinct

@@ -30,7 +30,7 @@
 #' several sightings contributes several events). The test year is the end
 #' `T` of the observation period. Uncertain sightings must all be later than
 #' the last certain sighting (the paper assumes uncertain sightings before it
-#' were omitted from the record); use [solow_beet2014_bayes()] when the two
+#' were omitted from the record); use `solow_beet2014_bayes()` when the two
 #' kinds of sightings overlap in time.
 #'
 #' Package constructs: the paper reports the Bayes factor in favour of
@@ -42,19 +42,26 @@
 #' times (where the likelihood is discontinuous), and the integral over
 #' `omega` on the log scale.
 #'
-#' Reproduction status: the posterior of `omega` reproduces the paper's mode
-#' (0.67) and quartiles (0.64, 0.77 versus 0.64, 0.78 here) for the
-#' Ivory-billed Woodpecker, but the published Bayes factors (4.03 for the
-#' truncated exponential prior, 4.97 for the uniform prior) are not
-#' reproduced exactly (3.28 and 3.87 here); the paper does not state the
-#' time conventions behind its numerical evaluation, to which the Bayes
-#' factor is sensitive. The record used is identical to the original source
+#' Reproduction status. With `count_origin = TRUE` (the sighting at the
+#' observation origin counted instead of omitted, nc = 39) the Ivory-billed
+#' Woodpecker analysis gives the Bayes factor 4.035 for the truncated
+#' exponential prior (published 4.03), and the posterior of `omega` has mode
+#' 0.670 and quartiles 0.638 and 0.771 (published 0.67, 0.64, 0.77). With the
+#' default (omitted, as in Solow 1993a) the values are 3.28, 0.665, 0.636 and
+#' 0.779. The published 4.97 for the uniform prior is not reproduced under
+#' either convention (4.69 with `count_origin = TRUE`, 3.87 by default);
+#' neither summing the likelihood over whole years nor normalising the prior
+#' over `(tL, T)` gives it. The record is identical to the original source
 #' (Elphick, Reed & Roberts 2010 supplement: 22 physical, 17 independent
 #' expert and 29 controversial years) and to the record in the code of
-#' Kodikara et al. (2020); the re-analysis of Kodikara, Demirhan & Stone
+#' Kodikara et al. (2020). The re-analysis of Kodikara, Demirhan & Stone
 #' (2018, eqs 5-9, 17-23) uses the same likelihoods as here
 #' (`p(t | persistence) = (n - 1)! / (T^n (nc + 1))` is equation 7 at
-#' `tau = T`) and reports no numerical Bayes factors for the original record.
+#' `tau = T`); their numerical results for a toy record (certain sightings
+#' in years 1 to 8, uncertain in 5 to 30, `T = 35`) are reproduced: the peak
+#' location `omega = 0.66` of their equation 15, and extinction supported
+#' (Bayes factor above 3) by model 1 only when the last uncertain sighting
+#' is at least five years before `T`.
 #'
 #' @param certain A [sighting_data] object with the certain sightings. Its
 #'   earliest time defines the observation origin.
@@ -74,6 +81,10 @@
 #'   occurred before `time`, conditional on extinction during the observation
 #'   period. Solow et al. (2012) used `c(1940, 0.5)`. A `prob` below
 #'   `(time - origin) / (test_year - origin)` gives an increasing density.
+#' @param count_origin If `FALSE` (default), a certain sighting at the
+#'   observation origin defines it and is omitted, as in [solow1993()]; if
+#'   `TRUE` it is counted like any other, which is the convention that
+#'   reproduces the published Bayes factor (see Reproduction status).
 #' @param data_out `FALSE` (default) for the Bayes factor; `TRUE` or
 #'   `"extinction"` for the posterior density of the extinction time given
 #'   extinction (equation 9); `"omega"` for the posterior density of `omega`
@@ -92,14 +103,16 @@
 #'   (2012). Uncertain sightings and the extinction of the Ivory-billed
 #'   Woodpecker. Conservation Biology, 26(1), 180-184.
 #'
-#' @seealso [solow_beet2014_bayes()] for records in which certain and
+#' @seealso `solow_beet2014_bayes()` for records in which certain and
 #'   uncertain sightings overlap in time.
 #' @keywords internal
 #' @noRd
 solow2012_bayes <- function(certain, uncertain = NULL, test_year, prior = 0.5,
                             tau_prior = c("uniform", "exponential"),
-                            exp_quantile = NULL, data_out = FALSE) {
-  rec <- uncertain_record(certain, uncertain, test_year, "Solow et al. (2012)")
+                            exp_quantile = NULL, data_out = FALSE,
+                            count_origin = FALSE) {
+  rec <- uncertain_record(certain, uncertain, test_year, "Solow et al. (2012)",
+                          count_origin)
   if (rec$nu > 0 && min(rec$u_time) <= rec$tL) {
     stop("Solow et al. (2012) requires every uncertain sighting to be later ",
          "than the last certain sighting; use solow_beet2014_bayes() for ",
@@ -113,7 +126,7 @@ solow2012_bayes <- function(certain, uncertain = NULL, test_year, prior = 0.5,
 
 #' Solow & Beet (2014) Bayes factors with overlapping uncertain sightings
 #'
-#' Extension of [solow2012_bayes()] by Solow & Beet (2014) in which certain
+#' Extension of `solow2012_bayes()` by Solow & Beet (2014) in which certain
 #' and uncertain sightings may occur anywhere in the observation period
 #' `(0, T)`. Two models are given. In both, conditional on extinction at
 #' `tau`, valid uncertain sightings occur before `tau` and invalid sightings
@@ -139,22 +152,33 @@ solow2012_bayes <- function(certain, uncertain = NULL, test_year, prior = 0.5,
 #' certain sighting `tL` to `T`. With no uncertain sightings, model 2
 #' reduces to the Bayes factor of [solow1993_bayes()] under a uniform prior.
 #' Times, the origin, event counts, `prior`, `tau_prior` and the returned
-#' quantities are as in [solow2012_bayes()].
+#' quantities are as in `solow2012_bayes()`.
 #'
 #' Reproduction status: for the Ivory-billed Woodpecker the paper reports
 #' Bayes factors in favour of extinction of 0.13, 0.19 and 0.007 (model 1)
 #' and about 4e6, 4e6 and 3e6 (model 2) for the truncated exponential prior
 #' with probability 0.5 before 1940, the uniform prior and the truncated
-#' exponential prior with probability 0.9 before 1940. This implementation
-#' gives 0.24, 0.36 and 0.013 (model 1) and 3.3e6, 3.1e6 and 1.8e6
-#' (model 2): the same conclusions, but not the same values; the paper does
-#' not state the time conventions behind its numerical evaluation.
+#' exponential prior with probability 0.9 before 1940. With the package
+#' conventions (origin 1897, `test_year = 2010`) this implementation gives
+#' 0.24, 0.36 and 0.013 (model 1) and 3.3e6, 3.1e6 and 1.8e6 (model 2): the
+#' same conclusions, but not the same values. The model 1 values are very
+#' sensitive to the gap between the last uncertain sighting (2006) and `T`,
+#' and all three are reproduced to the published rounding (0.129, 0.190 and
+#' 0.00713) when the calendar year `y` is placed at time `y - 1896`, the
+#' window is 113 units long (`test_year = 2009`), and the first sighting (1897)
+#' is left out of the count: that is, passing `certain` without the 1897
+#' sighting but with a zero-count row at 1896. No convention tried reproduces
+#' the model 2 values together with those of model 1 (the same convention
+#' gives 1.9e6, 1.8e6 and 1.0e6). The paper does not state the time
+#' conventions behind its numerical evaluation. Kodikara, Demirhan & Stone
+#' (2018) use the same likelihoods, and their toy-record results are
+#' reproduced (see `solow2012_bayes()`).
 #'
 #' @inheritParams solow2012_bayes
 #' @param model `1` (certain and valid uncertain sightings from the same
 #'   process) or `2` (independent processes).
 #'
-#' @return As [solow2012_bayes()].
+#' @return As `solow2012_bayes()`.
 #'
 #' @references
 #' Solow, A. R. & Beet, A. R. (2014). On uncertain sightings and inference
@@ -169,11 +193,13 @@ solow2012_bayes <- function(certain, uncertain = NULL, test_year, prior = 0.5,
 solow_beet2014_bayes <- function(certain, uncertain = NULL, test_year, model,
                                  prior = 0.5,
                                  tau_prior = c("uniform", "exponential"),
-                                 exp_quantile = NULL, data_out = FALSE) {
+                                 exp_quantile = NULL, data_out = FALSE,
+                                 count_origin = FALSE) {
   if (missing(model) || length(model) != 1L || !(model %in% c(1, 2))) {
     stop("`model` must be 1 or 2.", call. = FALSE)
   }
-  rec <- uncertain_record(certain, uncertain, test_year, "Solow & Beet (2014)")
+  rec <- uncertain_record(certain, uncertain, test_year, "Solow & Beet (2014)",
+                          count_origin)
   spec <- if (model == 1) {
     list(a = rec$nc, n = rec$nc + rec$nu, L = rec$T, certain_power = 0)
   } else {
@@ -199,7 +225,8 @@ solow_beet2014_bayes <- function(certain, uncertain = NULL, test_year, model,
 #' Validate a certain/uncertain record and convert it to relative times
 #' @keywords internal
 #' @noRd
-uncertain_record <- function(certain, uncertain, test_year, label) {
+uncertain_record <- function(certain, uncertain, test_year, label,
+                             count_origin = FALSE) {
   if (!inherits(certain, "sighting_data")) {
     stop("`certain` must be a sighting_data object.", call. = FALSE)
   }
@@ -209,7 +236,8 @@ uncertain_record <- function(certain, uncertain, test_year, label) {
   if (!any(certain$count > 0)) stop("no certain sightings with count > 0.", call. = FALSE)
   origin <- min(certain$time)
   last_certain <- max(certain$time[certain$count > 0])
-  nc <- solow_event_count(certain)
+  nc <- if (isTRUE(count_origin)) sum(certain$count) else
+    solow_event_count(certain)
   if (last_certain <= origin || nc < 1) {
     stop(label, " needs at least 1 certain sighting after the observation origin.",
          call. = FALSE)

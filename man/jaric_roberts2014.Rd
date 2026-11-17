@@ -34,13 +34,13 @@ after the last sighting up to \code{test_year} instead of the estimate.}
 An \link{ede_estimate} object with additional components
 \code{effective_sightings} (\code{r}), \code{effective_endpoint} (\code{t[r]}, on the
 original time scale) and, if \code{test_year} is given, \code{p_value}; or (if
-\code{data_out = TRUE}) a data frame with columns \code{time} and \code{chance}
-(p-values).
+\code{data_out = TRUE}) a data frame with columns \code{time} and \code{p_value}
+(plus \code{chance}, a deprecated alias of \code{p_value}).
 }
 \description{
 Modifies the constant-rate Solow (1993a) model by assigning a reliability
 \code{p[i]} in \verb{[0, 1]} to each sighting. The number of sightings is replaced by
-the effective number \code{r = sum(p[i])} (equation 4 of Jaric & Roberts, 2014)
+the effective number \code{r} = \code{sum(p[i])} (equation 4 of Jaric & Roberts, 2014)
 and the last sighting time by its expectation \code{t[r]} over which record is
 the last valid one (equations 5-6). The point estimate is
 \code{(r + 1) / r * t[r]} (equation 9) and the upper confidence bound is

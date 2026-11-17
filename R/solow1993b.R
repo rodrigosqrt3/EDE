@@ -38,8 +38,8 @@
 #' @return An [ede_estimate] object with the minimum variance unbiased
 #'   estimate in `estimate` and the one-sided upper bound in `upper` (`NA`,
 #'   with a warning, if it does not exist before `test_year`), or (if
-#'   `data_out = TRUE`) a data frame with columns `time` and `chance`
-#'   (p-values).
+#'   `data_out = TRUE`) a data frame with columns `time` and `p_value`
+#'   (plus `chance`, a deprecated alias of `p_value`).
 #'
 #' @references
 #' Solow, A. R. (1993b). Inferring extinction in a declining population.
@@ -81,7 +81,7 @@ solow1993b <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
     chance <- vapply(candidates, function(t) {
       solow1993b_chance(full[full$time <= t, , drop = FALSE])
     }, numeric(1))
-    return(data.frame(time = candidates, chance = chance))
+    return(p_curve(candidates, chance))
   }
 
   # F(T) reaches 1 at T = S, so the p-value is bounded below by F(t[n])
