@@ -56,6 +56,55 @@ test_that("solow2012_bayes extinction-time posterior has the paper's modes (Fig.
   expect_gt(ex$density[1], around(1944.5, 1945.5))
 })
 
+test_that("counting the origin sighting reproduces Solow et al. (2012)", {
+  r <- ibw2012()
+  e <- solow2012_bayes(r$certain, r$uncertain, 2010, tau_prior = "exponential",
+                       exp_quantile = c(1940, 0.5), count_origin = TRUE)
+  expect_equal(e$bayes_factor_extinction, 4.03, tolerance = 0.005)  # 4.035
+  om <- solow2012_bayes(r$certain, r$uncertain, 2010,
+                        tau_prior = "exponential", exp_quantile = c(1940, 0.5),
+                        data_out = "omega", count_origin = TRUE)
+  cdf <- cumsum(om$density) * 0.005
+  q <- stats::approx(cdf, om$omega, c(0.25, 0.75))$y
+  expect_equal(om$omega[which.max(om$density)], 0.67, tolerance = 0.001)
+  expect_equal(round(q, 2), c(0.64, 0.77))
+  # the uniform-prior value of the paper (4.97) is not reproduced
+  u <- solow2012_bayes(r$certain, r$uncertain, 2010, count_origin = TRUE)
+  expect_equal(round(u$bayes_factor_extinction, 2), 4.69)
+})
+
+test_that("solow_beet2014_bayes model 1 reproduces the published values", {
+  # year y at time y - 1896, window of 113 units, first sighting (1897) left
+  # out of the count: see the Reproduction status of the function
+  cert <- sighting_data(data.frame(time = c(1896, ibw_physical()[-1]),
+                                   count = c(0, rep(1, 21))))
+  unc <- years(ibw_other())
+  f <- function(...) solow_beet2014_bayes(cert, unc, 2009, model = 1, ...)
+  b <- c(f(tau_prior = "exponential", exp_quantile = c(1940, 0.5))$bayes_factor_extinction,
+         f()$bayes_factor_extinction,
+         f(tau_prior = "exponential", exp_quantile = c(1940, 0.9))$bayes_factor_extinction)
+  expect_equal(signif(b, 2), c(0.13, 0.19, 0.0071))
+  expect_equal(round(b[1:2], 2), c(0.13, 0.19))
+  expect_equal(round(b[3], 3), 0.007)
+})
+
+test_that("Kodikara, Demirhan & Stone (2018) toy record is reproduced", {
+  cert <- sighting_data(data.frame(time = 0:8, count = c(0, rep(1, 8))))
+  unc <- years(5:30)
+  bf <- function(Tt) {
+    solow_beet2014_bayes(cert, unc, Tt, model = 1)$bayes_factor_extinction
+  }
+  # equation 15: omega_1 = 0.66 for nc = 8, n = 34, tn / T = 30 / 35
+  w <- stats::uniroot(function(w) w^(8 / 34) - w * (30 / 35 + 1 / w - 1),
+                      c(0.3, 0.95))$root
+  expect_equal(round(w, 2), 0.66)
+  # extinction supported (BF > 3) only if the last uncertain sighting is at
+  # least five years before T (paper, p. 102)
+  expect_lt(bf(34), 3)
+  expect_gt(bf(35), 3)
+  expect_lt(bf(31), bf(33))
+})
+
 test_that("solow2012_bayes supports extinction for the woodpecker (Solow et al. 2012)", {
   r <- ibw2012()
   e <- solow2012_bayes(r$certain, r$uncertain, 2010, tau_prior = "exponential",

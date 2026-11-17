@@ -122,11 +122,11 @@ test_that("solow1993/solow2005 data_out = TRUE returns the full p-value curve", 
   sd <- sighting_data(d)
 
   curve1 <- solow1993(sd, 0.05, test_year = 2000, data_out = TRUE)
-  expect_named(curve1, c("time", "chance"))
+  expect_named(curve1, c("time", "p_value", "chance"))
   expect_equal(nrow(curve1), 69L)
 
   curve2 <- solow2005(sd, 0.05, test_year = 2000, data_out = TRUE)
-  expect_named(curve2, c("time", "chance"))
+  expect_named(curve2, c("time", "p_value", "chance"))
   expect_equal(nrow(curve2), 69L)
 })
 
