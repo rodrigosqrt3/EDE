@@ -43,7 +43,7 @@
 #'
 #' For the monk seal, the origin convention above reproduces the paper's
 #' equation 2 (0.053) and equation 4 (0.258) values (`CT = 77`, `n1 = N = 4`,
-#' `r = 40`), but equation 3 gives 0.244. No choice of `CT` and `r` near
+#' and `r` equal to 40), but equation 3 gives 0.244. No choice of `CT` and `r` near
 #' these values gives 0.258 exactly (`CT = 78` with `n1 = 4`, i.e. counting
 #' 1915 as an empty period, gives 0.2587). Since all seal counts are 1, the
 #' paper's equal entries for equations 3 and 4 suggest that the equation 4
@@ -62,7 +62,8 @@
 #'
 #' @return An [ede_estimate] object with `estimate = NA` and the one-sided
 #'   upper bound in `upper`, or (if `data_out = TRUE`) a data frame with
-#'   columns `time` and `chance` (p-values).
+#'   columns `time` and `p_value` (plus `chance`, a deprecated alias of
+#'   `p_value`).
 #'
 #' @references
 #' Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat
@@ -103,7 +104,7 @@ burgman1995 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
     chance_fun(full[full$time <= t, , drop = FALSE])
   }, numeric(1))
 
-  if (data_out) return(data.frame(time = candidates, chance = chance))
+  if (data_out) return(p_curve(candidates, chance))
 
   method <- sprintf("Burgman, Grimson & Ferson (1995), equation %d", equation)
   below <- candidates[chance <= alpha]

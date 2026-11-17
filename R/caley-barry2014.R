@@ -45,14 +45,14 @@
 #'    sd 0.15);
 #' 4. take a normal random-walk step for `r` (sd 0.05).
 #'
-#' The chain starts from `r = 0`, `delta = log(2)`, `eps0 = 0` and
+#' The chain starts from `r` = 0, `delta = log(2)`, `eps0 = 0` and
 #' `eps1 = 1`. As in Code S1, the `lambda` likelihood used in the `delta` and
 #' `r` updates includes the extinction period as a non-detection, while the
 #' `z` update does not. Because `lambda[t]` now varies with `t`, this factor
 #' differs between values of `z`. **The full conditionals of Code S2 are
 #' therefore not those of a single joint model**, and the sampler is
 #' reproduced only for comparability with the paper. Code S2 uses
-#' `r ~ U(-2.3, 0.69)`, whereas the paper's text gives `U(-1.6, 0.69)`; the
+#' `r` ~ `U(-2.3, 0.69)`, whereas the paper's text gives `U(-1.6, 0.69)`; the
 #' code's value is the default here. Code S2 also does not report an implied
 #' prior probability of persistence that can be checked, so `prior` and
 #' `bayes_factor` are `NA` for this model.

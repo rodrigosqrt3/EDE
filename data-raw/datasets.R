@@ -79,8 +79,60 @@ extinct_birds <- rbind(
   )
 )
 
+# Solow, Roberts & Robbirt (2006), PNAS 103: 7351-7353, Table 1 (taken by the
+# authors from Guthrie 2003, 2004): the 25 most recent radiocarbon ages of
+# Alaskan mammoths and caballoid horses, in ka BP, with their standard
+# deviations (ka). The oldest horse age (17.65) is the one the authors omit.
+alaska_megafauna <- data.frame(
+  taxon = rep(c("mammoth", "horse"), each = 25),
+  age_ka_bp = c(
+    11.50, 11.54, 11.91, 12.12, 12.19, 12.34, 12.43, 12.44, 12.48, 12.49,
+    12.51, 12.58, 12.68, 12.88, 13.06, 13.23, 13.29, 13.34, 13.38, 13.41,
+    13.44, 13.66, 13.69, 14.02, 14.09,
+    12.48, 12.51, 12.56, 12.58, 12.71, 12.86, 13.25, 13.27, 13.94, 14.00,
+    14.12, 14.26, 14.30, 14.62, 14.99, 15.37, 15.50, 15.57, 15.75, 15.92,
+    16.13, 16.15, 16.48, 16.70, 17.65
+  ),
+  sd_ka = c(
+    .16, .14, .13, .09, .13, .11, .18, .13, .08, .17,
+    .15, .15, .14, .12, .15, .09, .14, .15, .09, .15,
+    .09, .16, .19, .10, .16,
+    .08, .13, .14, .14, .17, .14, .16, .15, .16, .16,
+    .18, .16, .16, .17, .19, .19, .10, .19, .19, .19,
+    .24, .21, .21, .22, .23
+  )
+)
+
+# Solow (1997), Radiocarbon 39: 351-354, Table 1: approximate calibrated ages
+# (yr BP) and error standard deviations of 22 shell samples from New Zealand,
+# read by the author from Figure 3 of Higham & Hogg (1997).
+nz_shells <- data.frame(
+  sample = c("Wk-2282", "Wk-2768", "Wk-2770", "Wk-1083", "Wk-2502", "Wk-1515",
+             "Wk-2515", "Wk-1167", "Wk-1737", "Wk-2751", "Wk-2410", "Wk-2411",
+             "Wk-2412", "Wk-2362", "Wk-2508", "Wk-2752", "Wk-2856", "Wk-2632",
+             "Wk-2857", "Wk-2440", "Wk-2441", "Wk-2851"),
+  age_bp = c(670, 670, 620, 530, 565, 595, 610, 580, 610, 565, 580, 595, 635,
+             580, 640, 565, 575, 575, 560, 625, 645, 570),
+  sd_yr = c(30, 30, 40, 25, 55, 50, 50, 35, 40, 45, 50, 50, 30, 45, 25, 45,
+            40, 40, 45, 30, 25, 40)
+)
+
+# Solow (1996), Paleobiology 22: 406-410, Table 1: number of finds and
+# approximate location (m) of the lowest and highest find of the ten uppermost
+# ammonite taxa of Seymour Island, from Macellari (1986); taxa 3 and 8 from
+# Strauss & Sadler (1989). Taxa are numbered as in the table.
+seymour_ammonites <- data.frame(
+  taxon = 1:10,
+  n = c(14, 24, 16, 8, 10, 11, 10, 8, 3, 4),
+  lowest = c(480, 640, 800, 900, 900, 925, 955, 979, 990, 1100),
+  highest = c(1165, 1165, 1147, 1145, 1135, 1120, 1130, 1091, 1120, 1145)
+)
+
 save(dodo, file = "data/dodo.rda", compress = "xz")
 save(monk_seal, file = "data/monk_seal.rda", compress = "xz")
 save(ferret, file = "data/ferret.rda", compress = "xz")
 save(orchid, file = "data/orchid.rda", compress = "xz")
 save(extinct_birds, file = "data/extinct_birds.rda", compress = "xz")
+save(alaska_megafauna, file = "data/alaska_megafauna.rda", compress = "xz")
+save(nz_shells, file = "data/nz_shells.rda", compress = "xz")
+save(seymour_ammonites, file = "data/seymour_ammonites.rda", compress = "xz")

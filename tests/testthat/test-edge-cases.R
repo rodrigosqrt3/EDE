@@ -13,6 +13,11 @@ test_that("methods reject a record with no sightings", {
   expect_error(rout2009(no_sightings(), test_year = 1950), "no sightings")
   expect_error(burgman1995(no_sightings(), test_year = 1950), "no sightings")
   expect_error(brook2019(no_sightings(), reliability = c(1, 1)), "no sightings")
+  expect_error(alroy2014(no_sightings(), test_year = 1950), "no sightings")
+  expect_error(mccarthy1998(no_sightings(), rep(1, 60), test_year = 1950),
+               "no sightings")
+  expect_error(bradshaw2012(no_sightings()), "no sightings")
+  expect_error(solow2006(no_sightings(), error = 0.1), "no sightings")
 })
 
 test_that("expand_record rejects a test year before the last sighting", {

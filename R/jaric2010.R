@@ -26,8 +26,8 @@
 #' @return An [ede_estimate] object with `estimate = NA`, the one-sided upper
 #'   bound in `upper`, and additional components `average_interval` and
 #'   `trend_coefficient`; or (if `data_out = TRUE`) a data frame with columns
-#'   `time` and `chance` (index values) carrying the same two quantities as
-#'   attributes.
+#'   `time` and `p_value` (index values; `chance` is a deprecated alias)
+#'   carrying the same two quantities as attributes.
 #'
 #' @references
 #' Jaric, I., & Ebenhard, T. (2010). A method for inferring extinction based
@@ -68,7 +68,7 @@ jaric2010 <- function(sd, alpha = 0.05, test_year, data_out = FALSE,
     (adjusted_interval + candidates - last_sight)
 
   if (data_out) {
-    out <- data.frame(time = candidates, chance = p_value)
+    out <- p_curve(candidates, p_value)
     attr(out, "average_interval") <- average_interval
     attr(out, "trend_coefficient") <- trend_coefficient
     return(out)

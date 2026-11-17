@@ -1,0 +1,204 @@
+---
+title: "Extreme-value methods for sighting records"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extreme-value methods for sighting records}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+## The model
+
+Let $t_1 < \dots < t_n$ be the sighting times of a species that went extinct
+at an unknown time $\tau$. If the sighting times are independent draws from a
+distribution $F$ on $(0, \tau)$, the extinction time is the upper endpoint of
+$F$, and the latest sightings are the upper order statistics of the sample.
+Extreme-value theory then describes how they behave (Robson & Whitlock 1964;
+Cooke 1980; Roberts & Solow 2003).
+
+A distribution with a finite endpoint belongs to the Weibull domain of
+attraction, with extreme-value index $\xi < 0$. If the density behaves as
+$(\tau - t)^{a-1}$ near $\tau$, then $\xi = -1/a$: a constant sighting rate has
+$a = 1$ ($\xi = -1$) and a rate falling linearly to zero has $a = 2$
+($\xi = -1/2$). The Gumbel domain ($\xi = 0$) contains distributions whose
+tail is exponential, with an infinite endpoint or, in particular
+cases, a finite one; the Fréchet domain ($\xi > 0$) has an infinite endpoint.
+Only $\xi \le 0$ is compatible with extinction at a finite time.
+
+The functions in this article treat the $k$ latest sightings in that way.
+They are transpositions to sighting records of procedures designed for the
+upper tail of a sample; `ole()` (Roberts & Solow 2003) is the only one of them
+introduced in the sighting-record literature. Each function states in its help
+page which assumptions the transposition adds.
+
+```{r}
+library(EDE)
+
+years <- c(1900, 1902, 1903, 1905, 1907, 1908, 1910, 1912,
+           1915, 1918, 1920, 1923, 1925, 1928, 1930, 1933, 1936)
+counts <- c(4, 3, 5, 2, 3, 4, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1)
+sd <- sighting_data(data.frame(year = years, sightings = counts))
+```
+
+## Endpoint estimators
+
+`ole()` fits the Weibull model by the optimal linear estimator of Cooke (1980)
+and reports the two-sided interval of Roberts & Solow (2003). By default it
+uses every sighting event.
+
+`hall_wang1999()` estimates the endpoint by minimising Greenwood's statistic
+of the log-spacings (Hall & Wang 1999). The criterion does not involve the
+extremal exponent, so the estimator exists more often than the maximum
+likelihood estimator when few sightings are used, and its confidence interval
+is exact under the model. The null distribution of Greenwood's statistic has
+no closed form; EDE simulates it, and the simulated quantiles agree to three
+decimals with the exact points that Burrows (1979) computed for 10 spacings,
+as quoted by Stephens (1981). By default
+`hall_wang1999()` uses the 10 latest distinct sightings.
+
+`fraga_alves_neves2014()` is a closed-form estimator for the Gumbel domain
+with a finite endpoint (Fraga Alves & Neves 2014). It is never earlier than
+the last sighting and returns no interval.
+
+```{r}
+ole(sd)
+hall_wang1999(sd, k = 8)
+fraga_alves_neves2014(sd)
+```
+
+The upper limit of the Hall-Wang interval is often infinite, which says that
+the $k$ sightings do not exclude an infinite endpoint. That is the correct
+answer when the evidence for a finite endpoint is weak, and the share of
+records for which it occurs is quantified in `vignette("choosing-a-method")`.
+
+## Choosing $k$
+
+All of these estimators depend on $k$. `ede_select_k()` chooses it with the
+sequential procedure of G'Sell et al. (2016), applied as in Bader, Yan & Zhang
+(2018): Weibull goodness-of-fit tests are run from the largest to the smallest
+$k$, and the ForwardStop rule controls the false discovery rate. The
+adaptation to sighting records is a construct of this package. The procedure is
+random, so set a seed.
+
+```{r}
+set.seed(1)
+sel <- ede_select_k(sd, nsim = 199)
+sel
+hall_wang1999(sd, k = sel$k)
+```
+
+## Is the endpoint finite?
+
+`ede_endpoint_test()` tests the Gumbel domain, with an exponential tail and no
+sharp endpoint, against the Weibull domain, using the statistic of Neves,
+Picek & Fraga Alves (2006) and that of Hasofer & Wang (1992). Both reduce, under
+an exponential tail, to functions of $k$ independent exponential excesses, so
+EDE reports exact $p$-values (Fisher's $g$ for the first, Greenwood's
+distribution for the second) next to the asymptotic approximation of the
+original paper, which is very conservative for small $k$. A small $p$-value
+supports a finite endpoint; a large one is inconclusive when $k$ is small,
+because the tests have little power.
+
+```{r}
+ede_endpoint_test(sd, k = 8)
+```
+
+## The extreme-value index
+
+`dekkers1989()` estimates $\xi$ with the moment estimator of Dekkers, Einmahl
+& de Haan (1989), and derives an endpoint estimate from it. It is defined only
+when the estimated index is negative. The estimator works on the logarithms of
+the exceedances, so it depends on the origin of the time axis, which by
+default is the start of the record, and with few sightings it is noisy.
+`ede_evi()` repeats it over a range of $k$, the usual stability diagram.
+
+```{r, fig.height = 3.5}
+plot(ede_evi(sd))
+```
+
+`smith1985()` fits the same model by maximum likelihood (Smith 1985). The
+likelihood is unbounded at the last sighting, so the estimator is an interior
+local maximum, and the usual asymptotics hold only when $a > 2$
+($\xi > -1/2$). A constant sighting rate has $a = 1$, outside that range, and
+in simulation the interior maximum exists in a small share of records; for
+sighting records `hall_wang1999()` is the better default.
+
+## Checking the model
+
+`vogel2009()` tests whether sighting times are uniformly distributed over the
+record, the null hypothesis of the constant-rate methods, with the
+probability-plot correlation coefficient of Vogel et al. (2009). The null
+distribution is obtained by simulation. When many species are tested,
+`ede_field_test()` combines the $p$-values with Bonferroni, Benjamini-Hochberg,
+binomial and probability-plot-correlation rules for field significance.
+
+```{r}
+vogel2009(sd, nsim = 2000)
+```
+
+`mccarthy1998()` adjusts the Solow (1993a) test for sighting effort that
+varies over time, supplied as a vector with one value per time unit from the
+origin, or as a function of time (McCarthy 1998). The probability that all
+sightings fall before $t_n$ is computed with cumulative effort instead of
+elapsed time.
+
+```{r}
+effort <- c(rep(1, 50), rep(0.5, 51))          # 1900-2000, effort halves after 1950
+mccarthy1998(sd, effort = effort, test_year = 2000)
+```
+
+## References
+
+Bader, B., Yan, J., & Zhang, X. (2018). Automated threshold selection for
+extreme value analysis via ordered goodness-of-fit tests with adjustment for
+false discovery rate. *Annals of Applied Statistics*, 12, 310-329.
+
+Cooke, P. (1980). Optimal linear estimation of bounds of random variables.
+*Biometrika*, 67, 257-258.
+
+Dekkers, A. L. M., Einmahl, J. H. J., & de Haan, L. (1989). A moment estimator
+for the index of an extreme-value distribution. *Annals of Statistics*, 17,
+1833-1855.
+
+Fraga Alves, I., & Neves, C. (2014). Estimation of the finite right endpoint in
+the Gumbel domain. *Statistica Sinica*, 24, 1811-1835.
+
+G'Sell, M. G., Wager, S., Chouldechova, A., & Tibshirani, R. (2016). Sequential
+selection procedures and false discovery rate control. *Journal of the Royal
+Statistical Society B*, 78, 423-444.
+
+Hall, P., & Wang, J. Z. (1999). Estimating the end-point of a probability
+distribution using minimum-distance methods. *Bernoulli*, 5, 177-189.
+
+Hasofer, A. M., & Wang, Z. (1992). A test for extreme value domain of
+attraction. *Journal of the American Statistical Association*, 87, 171-177.
+
+McCarthy, M. A. (1998). Identifying declining and threatened species with
+museum data. *Biological Conservation*, 83, 9-17.
+
+Neves, C., Picek, J., & Fraga Alves, M. I. (2006). The contribution of the
+maximum to the sum of excesses for testing max-domains of attraction.
+*Journal of Statistical Planning and Inference*, 136, 1281-1301.
+
+Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the dodo
+become extinct? *Nature*, 426, 245.
+
+Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation point.
+*Biometrika*, 51, 33-39.
+
+Smith, R. L. (1985). Maximum likelihood estimation in a class of nonregular
+cases. *Biometrika*, 72, 67-90.
+
+Solow, A. R. (1993a). Inferring extinction from sighting data. *Ecology*, 74,
+962-964.
+
+Stephens, M. A. (1981). Further percentage points for Greenwood's statistic.
+*Journal of the Royal Statistical Society A*, 144, 364-366.
+
+Vogel, R. M., Hosking, J. R. M., Elphick, C. S., Roberts, D. L., & Reed, J. M.
+(2009). Goodness of fit of probability distributions for sightings as species
+approach extinction. *Bulletin of Mathematical Biology*, 71, 701-719.

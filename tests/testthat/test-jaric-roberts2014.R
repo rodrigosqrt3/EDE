@@ -34,7 +34,7 @@ test_that("jaric_roberts2014 computes the p-value of equations 7-8", {
 
   curve <- jaric_roberts2014(d, reliability = c(1, 0.8, 0.5),
                              test_year = 1950, data_out = TRUE)
-  expect_named(curve, c("time", "chance"))
+  expect_named(curve, c("time", "p_value", "chance"))
   expect_equal(curve$time, 1921:1950)
   expect_equal(curve$chance[curve$time == 1950], res$p_value)
 

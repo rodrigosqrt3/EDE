@@ -2,7 +2,7 @@
 #'
 #' Modifies the constant-rate Solow (1993a) model by assigning a reliability
 #' `p[i]` in `[0, 1]` to each sighting. The number of sightings is replaced by
-#' the effective number `r = sum(p[i])` (equation 4 of Jaric & Roberts, 2014)
+#' the effective number `r` = `sum(p[i])` (equation 4 of Jaric & Roberts, 2014)
 #' and the last sighting time by its expectation `t[r]` over which record is
 #' the last valid one (equations 5-6). The point estimate is
 #' `(r + 1) / r * t[r]` (equation 9) and the upper confidence bound is
@@ -31,8 +31,8 @@
 #' @return An [ede_estimate] object with additional components
 #'   `effective_sightings` (`r`), `effective_endpoint` (`t[r]`, on the
 #'   original time scale) and, if `test_year` is given, `p_value`; or (if
-#'   `data_out = TRUE`) a data frame with columns `time` and `chance`
-#'   (p-values).
+#'   `data_out = TRUE`) a data frame with columns `time` and `p_value`
+#'   (plus `chance`, a deprecated alias of `p_value`).
 #'
 #' @references
 #' Jaric, I., & Roberts, D. L. (2014). Accounting for observation reliability
@@ -95,8 +95,7 @@ jaric_roberts2014 <- function(sd, reliability, alpha = 0.05,
     check_test_year(test_year, last_sight)
     candidates <- candidate_times(last_sight, test_year)
     if (data_out) {
-      return(data.frame(time = candidates,
-                        chance = (tr / (candidates - origin))^r))
+      return(p_curve(candidates, (tr / (candidates - origin))^r))
     }
   }
 

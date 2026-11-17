@@ -62,6 +62,16 @@ test_bound_result <- function(bound, test_year, method, alpha) {
                    interval_type = "one-sided")
 }
 
+#' Candidate-time p-value curve
+#'
+#' `chance` is a deprecated alias of `p_value`, kept for code written for
+#' EDE 0.3.0 and earlier.
+#' @keywords internal
+#' @noRd
+p_curve <- function(time, p) {
+  data.frame(time = time, p_value = p, chance = p)
+}
+
 #' Validate `test_year`, and if given, compare it with the last sighting
 #' @keywords internal
 #' @noRd

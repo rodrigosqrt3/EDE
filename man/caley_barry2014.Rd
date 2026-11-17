@@ -116,14 +116,14 @@ sd 0.15);
 \item take a normal random-walk step for \code{r} (sd 0.05).
 }
 
-The chain starts from \code{r = 0}, \code{delta = log(2)}, \code{eps0 = 0} and
+The chain starts from \code{r} = 0, \code{delta = log(2)}, \code{eps0 = 0} and
 \code{eps1 = 1}. As in Code S1, the \code{lambda} likelihood used in the \code{delta} and
 \code{r} updates includes the extinction period as a non-detection, while the
 \code{z} update does not. Because \code{lambda[t]} now varies with \code{t}, this factor
 differs between values of \code{z}. \strong{The full conditionals of Code S2 are
 therefore not those of a single joint model}, and the sampler is
 reproduced only for comparability with the paper. Code S2 uses
-\code{r ~ U(-2.3, 0.69)}, whereas the paper's text gives \code{U(-1.6, 0.69)}; the
+\code{r} ~ \code{U(-2.3, 0.69)}, whereas the paper's text gives \code{U(-1.6, 0.69)}; the
 code's value is the default here. Code S2 also does not report an implied
 prior probability of persistence that can be checked, so \code{prior} and
 \code{bayes_factor} are \code{NA} for this model.

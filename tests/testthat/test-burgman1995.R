@@ -68,7 +68,7 @@ test_that("burgman1995 data_out = TRUE returns the full p-value curve", {
     sightings = c(1, 1, 3, 4, 3, 1, 2, 1)
   )
   curve <- burgman1995(sighting_data(d), alpha = 0.05, test_year = 1935, data_out = TRUE)
-  expect_named(curve, c("time", "chance"))
+  expect_named(curve, c("time", "p_value", "chance"))
   expect_equal(nrow(curve), 4L)
 })
 

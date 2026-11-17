@@ -15,9 +15,10 @@ later than the last sighting.}
 \item{alpha}{Significance level, in (0, 1).}
 }
 \value{
-A data frame with one row per method and columns \code{method},
-\code{function_name}, \code{estimate}, \code{lower}, \code{upper}, \code{interval_type} and
-\code{note}. Persistence tests report the one-sided upper bound in \code{upper}.
+A data frame of class \code{ede_compare}, with one row per method and
+columns \code{method}, \code{function_name}, \code{estimate}, \code{lower}, \code{upper},
+\code{interval_type} and \code{note}. Persistence tests report the one-sided upper
+bound in \code{upper}. Use \code{plot()} for a forest plot.
 }
 \description{
 Runs the estimators and persistence tests that need only a sighting record

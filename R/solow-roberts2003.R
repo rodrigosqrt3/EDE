@@ -15,7 +15,8 @@
 #'
 #' @return An [ede_estimate] object with `estimate = NA` and the one-sided
 #'   upper bound in `upper`, or (if `data_out = TRUE`) a data frame with
-#'   columns `time` and `chance` (p-values).
+#'   columns `time` and `p_value` (plus `chance`, a deprecated alias of
+#'   `p_value`).
 #'
 #' @references
 #' Solow, A. R., & Roberts, D. L. (2003). A nonparametric test for extinction
@@ -42,7 +43,7 @@ solow_roberts2003 <- function(sd, alpha = 0.05, test_year,
   candidates <- candidate_times(last_sight, test_year)
   p_value <- gap / (candidates - previous_sight)
 
-  if (data_out) return(data.frame(time = candidates, chance = p_value))
+  if (data_out) return(p_curve(candidates, p_value))
 
   bound <- last_sight + gap * (1 - alpha) / alpha
   test_bound_result(bound, test_year, "Solow & Roberts (2003)", alpha)

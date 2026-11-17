@@ -27,7 +27,8 @@
 #'
 #' @return An [ede_estimate] object with `estimate = NA` and the one-sided
 #'   upper bound in `upper`, or (if `data_out = TRUE`) a data frame with
-#'   columns `time` and `chance` (p-values).
+#'   columns `time` and `p_value` (plus `chance`, a deprecated alias of
+#'   `p_value`).
 #'
 #' @references
 #' McInerny, G. J., Roberts, D. L., Davy, A. J., & Cribb, P. J. (2006).
@@ -69,7 +70,7 @@ mcinerny2006 <- function(sd, alpha = 0.05, test_year, data_out = FALSE) {
   chance <- if (rate >= 1) rep(0, length(candidates)) else
     (1 - rate)^(candidates - last_sight)
 
-  if (data_out) return(data.frame(time = candidates, chance = chance))
+  if (data_out) return(p_curve(candidates, chance))
 
   below <- candidates[chance <= alpha]
   bound <- if (length(below) > 0L) below[1] else NA_real_

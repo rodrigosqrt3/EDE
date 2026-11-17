@@ -123,3 +123,12 @@ test_that("brook2019 validates its inputs", {
   expect_error(brook2019(d, rep(1, 3), alpha = 1), "alpha")
   expect_error(brook2019(d, rep(1, 3), persist_year = "a"), "persist_year")
 })
+
+test_that("the global random stream is restored when it did not exist", {
+  d <- sighting_data(data.frame(time = c(1900, 1905, 1911, 1920, 1930), count = 1))
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    rm(".Random.seed", envir = globalenv())
+  }
+  brook2019(d, rep(1, 5), method = strauss1989, n_resamples = 5, seed = 1)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+})

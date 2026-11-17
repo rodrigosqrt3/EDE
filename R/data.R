@@ -12,6 +12,60 @@
 #' ole(sighting_data(dodo))
 "dodo"
 
+#' Radiocarbon ages of Alaskan mammoths and horses
+#'
+#' The 25 most recent radiocarbon ages of remains of woolly mammoths
+#' (*Mammuthus primigenius*) and caballoid horses (*Equus ferus*) in Alaska,
+#' with the standard deviations of their dating errors, as listed in Table 1 of
+#' Solow, Roberts & Robbirt (2006), who took them from Guthrie (2003, 2004). The
+#' authors omit the oldest horse age (17.65 ka BP) from their analysis. Used as
+#' the example of [solow2006()] and [solow2006_region()].
+#'
+#' @format A data frame with 50 rows: `taxon` (`"mammoth"` or `"horse"`),
+#'   `age_ka_bp` (radiocarbon age in thousand years before present) and
+#'   `sd_ka` (standard deviation of the dating error, in thousand years).
+#' @source Solow, A. R., Roberts, D. L., & Robbirt, K. M. (2006). On the
+#'   Pleistocene extinctions of Alaskan mammoths and horses. Proceedings of the
+#'   National Academy of Sciences, 103(19), 7351-7353, Table 1.
+#' @examples
+#' head(alaska_megafauna)
+"alaska_megafauna"
+
+#' Ammonite finds from Seymour Island
+#'
+#' Number of finds and approximate stratigraphic location of the lowest and
+#' highest find of the ten uppermost ammonite taxa of Seymour Island,
+#' Antarctica, as given in Table 1 of Solow (1996), who took them from Figure 5
+#' of Macellari (1986) and, for taxa 3 and 8, from Strauss & Sadler (1989). The
+#' example of [solow1996()]. Taxa are numbered as in the table.
+#'
+#' @format A data frame with 10 rows: `taxon` (number in the table), `n`
+#'   (number of finds), `lowest` and `highest` (locations in meters of the
+#'   lowest and the highest find).
+#' @source Solow, A. R. (1996). Tests and confidence intervals for a common
+#'   upper endpoint in fossil taxa. Paleobiology, 22(3), 406-410, Table 1.
+#' @examples
+#' solow1996(seymour_ammonites)
+"seymour_ammonites"
+
+#' Radiocarbon ages of shell samples from New Zealand
+#'
+#' Approximate calibrated ages and error standard deviations of 22 shell
+#' samples from archaeological sites in and around New Zealand, read by Solow
+#' (1997, Table 1) from Figure 3 of Higham & Hogg (1997), who used them as
+#' evidence of a late Polynesian settlement. The example of [solow2006()] for
+#' the settlement time. The ages are approximate, as in the source, and several
+#' are tied.
+#'
+#' @format A data frame with 22 rows: `sample` (laboratory code), `age_bp`
+#'   (calibrated age in years before present) and `sd_yr` (standard deviation of
+#'   the dating error, in years).
+#' @source Solow, A. R. (1997). Estimating settlement time. Radiocarbon, 39(3),
+#'   351-354, Table 1.
+#' @examples
+#' solow2006(data.frame(time = nz_shells$age_bp, error = nz_shells$sd_yr))
+"nz_shells"
+
 #' Sighting record of the Caribbean monk seal
 #'
 #' Reliable sightings of the Caribbean monk seal (*Monachus tropicalis*) used

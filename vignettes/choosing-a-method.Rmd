@@ -1,0 +1,279 @@
+---
+title: "Choosing a method: assumptions and simulation evidence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Choosing a method: assumptions and simulation evidence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+sim_file <- system.file("extdata", "simulation_summary.csv", package = "EDE")
+have_sim <- nzchar(sim_file)
+```
+
+The methods in EDE answer related but different questions, and each is valid
+only under its own model of how sightings arise. This article states those
+models, reports a simulation study of the estimators that return an interval
+for the extinction time, and ends with a decision guide. For an introduction
+to the interface see `vignette("EDE")`.
+
+## Two families of method
+
+Let $t_1 < \dots < t_n$ be the times of the sightings, $T$ the end of the
+observation period and $\tau$ the unknown extinction time.
+
+**Persistence tests** treat $\tau$ as a hypothesis. They compute, for a
+candidate time $s \ge t_n$, a $p$-value for the null hypothesis that the
+species is still extant at $s$, under a model of the sighting rate. Inverting
+the test gives a one-sided upper confidence bound for $\tau$. They do not
+estimate $\tau$.
+
+**Endpoint estimators** treat $\tau$ as the finite upper endpoint of the
+distribution of sighting times. The last sightings are then the upper order
+statistics of that distribution, and extreme-value theory applies (Robson &
+Whitlock 1964; Cooke 1980; Roberts & Solow 2003). A finite endpoint
+corresponds to the Weibull domain of attraction, with extreme-value index
+$\xi < 0$. The index is tied to how fast the sighting rate vanishes at $\tau$:
+a density proportional to $(\tau - t)^{a-1}$ gives $\xi = -1/a$, so a constant
+rate is $a = 1$ ($\xi = -1$) and a rate falling linearly to zero is $a = 2$
+($\xi = -1/2$).
+
+## Assumptions of each method
+
+| Method | Model for the sighting process | Needs | Output |
+|---|---|---|---|
+| `solow1993()` | Homogeneous Poisson process | origin, every sighting event | upper bound |
+| `solow1993b()` | Poisson process with an exponentially declining rate | origin, every sighting event | upper bound (may not exist) |
+| `burgman1995()` | Equal periods; exact tests on the final (eq. 2) or the longest (eq. 4) run of empty periods | origin, every sighting event | upper bound |
+| `mcinerny2006()` | Binary time units; sighting rate fixed at its value up to the last sighting | origin, binary time units | upper bound |
+| `jaric2010()` | Average interval between sightings, optional trend; an index, not a fitted model | distinct times | index, upper bound |
+| `solow_roberts2003()` | Nonparametric; uses only the two latest distinct sightings | distinct times | upper bound |
+| `robson1964()` | Exact for uniform sighting times; Quenouille bias reduction | distinct times | estimate, upper bound |
+| `strauss1989()` | Uniform sighting times between the true endpoints | distinct times | estimate, upper bound |
+| `ole()` | Weibull domain, $k$ latest events | every sighting event, $k$ | estimate, two-sided interval |
+| `hall_wang1999()` | Weibull domain, $k$ latest sightings | distinct times, $k$ | estimate, exact interval |
+| `fraga_alves_neves2014()` | Gumbel domain with a finite endpoint | distinct times, $k$ | estimate |
+| `dekkers1989()` | Any domain of attraction; estimates $\xi$ | distinct times, origin, $k$ | $\xi$, endpoint, interval of $\xi$ |
+| `smith1985()` | Weibull domain, regular only for $\xi > -1/2$ | distinct times, $k$ | shape, endpoint, profile interval |
+| `alroy2014()` | Bayesian; prior extinction rate from the length of the observed range, sampling probability from the frequency of sightings in it | binary time units | posterior probability of extinction per unit, estimate, credible limits |
+| `solow2006()` | True ages uniform between two endpoints, normal dating error with known standard deviation | dated ages with errors, $k$ | estimate, profile-likelihood interval |
+| `bradshaw2012()` | Sighting-rate model of `mcinerny2006()` for each $k$, inverse-span weights, resampled dating errors | dated ages with errors | median, quantile interval |
+| `solow1996()` | Independent stationary Poisson processes in several taxa; common endpoint | number, lowest and highest find of each taxon | test, interval |
+
+Distinct times is the default of the extreme-value functions; they accept
+`events = TRUE` to count each sighting event instead. The last four methods
+need inputs the other methods do not (a binary series, dating errors, or
+several taxa) and are not part of the simulation below.
+
+The sighting-record literature does not contain `dekkers1989()`,
+`smith1985()` or `ede_endpoint_test()`. They are transpositions to sighting
+records of methods developed for the upper tail of a sample, as documented on
+their help pages; where the source paper gives a worked example they are
+tested against it. See `vignette("extreme-value-methods")` for their use.
+
+For dated records, such as radiocarbon ages, the dating error can be as large
+as the intervals between the records, and only `solow2006()` and
+`bradshaw2012()` take it into account (Solow et al. 2006; Bradshaw et al.
+2012). Saltré et al. (2015) compared eight frequentist methods, among them these
+two, on simulated series and on dated Australian megafauna, and give a
+selection key based on the number of records, the interval between them and the
+dating errors. They report that the methods with the highest precision
+(Marshall 1997; McCarthy 1998) can still misclassify species as extant or
+extinct, and that the method of Bradshaw et al. (2012) was the only one with
+both high accuracy and no misclassification in their tests. These are
+simulation results of the authors for their setting, not guarantees: the weights
+of Bradshaw et al. (2012) are a heuristic, and both methods rest on assumptions
+(uniform true ages for `solow2006()`, a fixed sighting rate for the model
+behind `bradshaw2012()`) that should be checked, for example with
+`solow2006_check()`.
+
+## Simulation design
+
+```{r, echo = FALSE, results = "asis", eval = have_sim}
+cat("The results below were produced by `data-raw/simulation.R` in the package source.\n")
+```
+
+The true extinction time is $\tau = 100$ time units. For each scenario, $n$
+sighting times are drawn on $(0, \tau)$, rounded up to whole units and
+aggregated into annual counts, the structure of a real record. Every method
+then receives the record and is asked for a $95\%$ upper bound with the test
+time set to $3\tau$. The record is generated as if the species went extinct at
+$\tau$, so the quantity of interest is whether $\tau$ is covered.
+
+| Scenario | Density of sighting times | $\xi$ |
+|---|---|---|
+| `uniform` | constant | $-1$ (non-regular) |
+| `beta2` | proportional to $\tau - t$ | $-1/2$ |
+| `beta4` | proportional to $(\tau - t)^3$ | $-1/4$ |
+| `eff_dec` | effort falling linearly to $20\%$ | $-1$ (non-regular) |
+| `eff_inc` | effort rising linearly from $20\%$ | $-1$ (non-regular) |
+
+Sample sizes are $n = 10, 20, 50$ sighting events, with 1000 replicates per
+scenario. All methods run with their default arguments, so `hall_wang1999()`
+uses the $k = 10$ latest sightings and `ole()` uses every sighting event.
+The persistence tests are searched up to the test time $3\tau$; a bound that
+lies beyond it is not returned and counts as a failure.
+
+Reported are the failure rate, the median bias of the point estimate, the
+coverage of $\tau$ counting failures as misses, the share of fits whose upper
+limit is finite, and the median excess of the finite upper limits over $\tau$.
+Coverage is the probability that the interval contains $\tau$; an unbounded
+upper limit contains it trivially, which is why the share of finite limits is
+reported next to it. A calibrated $95\%$ interval has coverage near $0.95$,
+with Monte Carlo standard error about $0.007$ at 1000 replicates.
+`fraga_alves_neves2014()` and `dekkers1989()` return no interval and are
+judged on bias only.
+
+## Results
+
+```{r, eval = have_sim, echo = FALSE}
+sim <- read.csv(sim_file)
+sc_lab <- c(uniform = "uniform", beta2 = "beta2", beta4 = "beta4",
+            eff_dec = "eff_dec", eff_inc = "eff_inc")
+wide <- function(v, n) {
+  d <- sim[sim$n == n, c("method", "scenario", v)]
+  w <- reshape(d, idvar = "method", timevar = "scenario", direction = "wide")
+  names(w) <- sub(paste0("^", v, "\\."), "", names(w))
+  w <- w[, c("method", names(sc_lab))]
+  rownames(w) <- NULL
+  w
+}
+```
+
+```{r, eval = !have_sim, echo = FALSE, results = "asis"}
+cat("*The simulation results are not installed in this build.*\n")
+```
+
+**Coverage of the true extinction time**, $n = 20$ (failures count as misses;
+the table for $n = 10$ and $n = 50$ is in `inst/extdata/simulation_summary.csv`).
+
+```{r, eval = have_sim, echo = FALSE}
+cv <- wide("coverage_all", 20)
+knitr::kable(cv[!is.na(rowSums(cv[, -1])), ], digits = 2, row.names = FALSE)
+```
+
+```{r, eval = have_sim, echo = FALSE, fig.height = 6.5}
+meths <- c("solow1993", "solow1993b", "burgman1995", "mcinerny2006",
+           "strauss1989", "robson1964", "hall_wang1999", "ole")
+cols <- c("#1b6ca8", "#c05621", "#2f855a", "#805ad5",
+          "#b7791f", "#2d3748", "#d53f8c", "#718096")
+op <- par(mfrow = c(2, 3), mar = c(4, 4, 2, 0.5))
+for (sc in names(sc_lab)) {
+  plot(NA, xlim = c(10, 50), ylim = c(0, 1), xlab = "sighting events",
+       ylab = "coverage", main = sc, log = "x", xaxt = "n")
+  axis(1, c(10, 20, 50))
+  abline(h = 0.95, lty = 2, col = "grey50")
+  for (i in seq_along(meths)) {
+    d <- sim[sim$scenario == sc & sim$method == meths[i], ]
+    lines(d$n, d$coverage_all, type = "b", col = cols[i], pch = 16, lwd = 1.5)
+  }
+}
+plot.new()
+legend("center", legend = meths, col = cols, pch = 16, lwd = 1.5, bty = "n")
+par(op)
+```
+
+**Upper limits that exist, and how far they lie above $\tau$**, $n = 20$:
+
+```{r, eval = have_sim, echo = FALSE}
+key <- c("hall_wang1999", "solow1993b", "robson1964", "strauss1989", "solow1993", "ole")
+fin <- wide("share_finite", 20); exc <- wide("excess_upper", 20)
+fin <- fin[fin$method %in% key, ]; exc <- exc[exc$method %in% key, ]
+out <- data.frame(method = fin$method,
+                  setNames(lapply(names(sc_lab), function(s)
+                    sprintf("%.0f%% / %+.0f", 100 * fin[[s]], exc[[s]])), names(sc_lab)))
+knitr::kable(out, row.names = FALSE, align = "lrrrrr",
+             col.names = c("method", names(sc_lab)))
+```
+
+Each cell shows the percentage of replicates with a finite upper limit and
+the median of (upper limit $-\ \tau$) among them.
+
+**Point estimates**: median bias, $n = 20$:
+
+```{r, eval = have_sim, echo = FALSE}
+pb <- wide("bias_median", 20)
+pb <- pb[!is.na(rowSums(pb[, -1])), ]
+knitr::kable(pb, digits = 1, row.names = FALSE)
+```
+
+### What the simulation shows
+
+**The tests are calibrated only under their own model.** With a constant
+sighting rate (`uniform`), `solow1993()`, `solow1993b()`, `burgman1995()`,
+`mcinerny2006()` and `strauss1989()` have coverage between 0.94 and 0.99 at
+every $n$, as the theory requires. When the rate declines towards extinction
+(`beta2`, `beta4`) they stop being calibrated, and more data make it worse:
+for `beta2`, coverage of `solow1993()` falls from 0.55 at $n = 10$ to 0.16 at
+$n = 50$, and for `beta4` it is 0.05, 0.01 and 0.002. The bound is too early
+because the rate drops near $\tau$, so the final gap looks like absence.
+Falling sighting effort (`eff_dec`) gives a milder version of the same failure
+(0.69 to 0.80 for the constant-rate tests), while rising effort makes them
+conservative. `solow1993b()`, which allows an exponential decline, holds up
+better (0.71 to 0.92 for `beta2` and `beta4`), but for those scenarios its
+bound exists in only 15% to 44% of replicates at $n = 20$.
+
+**`robson1964()` is the most robust bound, at a cost.** Its coverage stays
+between 0.84 and 1.00 in all fifteen scenario-size combinations, including the
+declining-rate scenarios where the constant-rate tests fall to 0.61 or less.
+The price is width: at $n = 20$ the median upper limit lies 53 to 136 time
+units above $\tau$, against 12 to 15 for the constant-rate tests in the
+`uniform` scenario, where those are calibrated.
+
+**Hall and Wang's interval is rarely bounded, and that is informative.**
+Its coverage is 0.93 to 0.99 everywhere, but with $k = 10$ the upper limit is
+finite in only 1% to 21% of replicates. In the other fits the data cannot
+exclude an infinite endpoint, which is what an exact interval should report
+when the evidence for a finite endpoint is weak. Its point estimate is nearly
+unbiased when the density is positive at $\tau$ (median bias between $-6.2$
+and $0.3$ for `uniform`, `eff_dec` and `eff_inc`, shrinking with $n$) and
+biased low when the rate vanishes at $\tau$ (by 6 to 15 units for `beta2` and
+25 to 38 for `beta4`), where the last sightings carry little information about
+the endpoint. The coverage of the
+bounded intervals alone is not a useful quantity here, because conditioning on
+a finite limit selects the replicates with the earliest limits.
+
+**`ole()` under-covers.** Coverage is 0.25 to 0.83 in all fifteen cells, and
+it falls with $n$ in the `uniform`, `eff_inc` and `beta4` scenarios. By
+default `ole()` uses every sighting event, and Solow (2005) notes that the
+extreme-value approximation can fail when $k$ is large; the failure
+rate also rises with $n$ (up to 0.34 for `eff_inc`). Choosing $k$ with
+`ede_select_k()` is advisable. `solow2005()` shares these properties.
+
+**The other extreme-value estimators.** `fraga_alves_neves2014()` is biased
+high (by up to 20 units) in the `uniform` and `eff_inc` scenarios and low (by
+up to 44) when the rate vanishes at $\tau$. `dekkers1989()` underestimates strongly at $n = 10$ (median
+bias $-38$ to $-81$) and improves with $n$; it returns no estimate when the
+moment estimate of the index is non-negative (up to 20% of fits).
+`smith1985()` returns an estimate in only 1% to 43% of fits, consistent with
+its regularity condition ($a > 2$), and is not competitive on sighting records.
+
+**Failures of `solow_roberts2003()` and `jaric2010()`** at small $n$ are
+bounds beyond the test time: 20% to 51% of replicates at $n = 10$ for the
+former.
+
+## References
+
+Cooke, P. (1980). Optimal linear estimation of bounds of random variables.
+*Biometrika*, 67, 257-258.
+
+Bradshaw, C. J. A., Cooper, A., Turney, C. S. M., & Brook, B. W. (2012).
+Robust estimates of extinction time in the geological record. *Quaternary
+Science Reviews*, 33, 14-19.
+
+Robson, D. S., & Whitlock, J. H. (1964). Estimation of a truncation point.
+*Biometrika*, 51, 33-39.
+
+Saltré, F., Brook, B. W., Rodríguez-Rey, M., Cooper, A., Johnson, C. N.,
+Turney, C. S. M., & Bradshaw, C. J. A. (2015). Uncertainties in dating
+constrain model choice for inferring extinction time from fossil records.
+*Quaternary Science Reviews*, 112, 128-137.
+
+Solow, A. R., Roberts, D. L., & Robbirt, K. M. (2006). On the Pleistocene
+extinctions of Alaskan mammoths and horses. *Proceedings of the National
+Academy of Sciences*, 103, 7351-7353.
+
+Roberts, D. L., & Solow, A. R. (2003). Flightless birds: When did the dodo
+become extinct? *Nature*, 426, 245.

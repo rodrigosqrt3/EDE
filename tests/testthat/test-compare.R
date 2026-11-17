@@ -3,7 +3,7 @@ test_that("ede_compare collects every method into one table", {
   out <- ede_compare(sd, test_year = 2050)
   expect_named(out, c("method", "function_name", "estimate", "lower", "upper",
                       "interval_type", "note"))
-  expect_equal(nrow(out), 10L)
+  expect_equal(nrow(out), 12L)
   expect_equal(out$upper[out$function_name == "solow1993"],
                solow1993(sd, test_year = 2050)$upper)
   expect_equal(out$estimate[out$function_name == "ole"], ole(sd)$estimate)

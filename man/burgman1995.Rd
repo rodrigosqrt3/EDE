@@ -25,7 +25,8 @@ runs test) for a change in conservation status.}
 \value{
 An \link{ede_estimate} object with \code{estimate = NA} and the one-sided
 upper bound in \code{upper}, or (if \code{data_out = TRUE}) a data frame with
-columns \code{time} and \code{chance} (p-values).
+columns \code{time} and \code{p_value} (plus \code{chance}, a deprecated alias of
+\code{p_value}).
 }
 \description{
 Exact tests for sighting records divided into \code{CT} equal periods, where \code{N}
@@ -74,7 +75,7 @@ the last; equations 2 and 4 reproduce their published values.
 
 For the monk seal, the origin convention above reproduces the paper's
 equation 2 (0.053) and equation 4 (0.258) values (\code{CT = 77}, \code{n1 = N = 4},
-\code{r = 40}), but equation 3 gives 0.244. No choice of \code{CT} and \code{r} near
+and \code{r} equal to 40), but equation 3 gives 0.244. No choice of \code{CT} and \code{r} near
 these values gives 0.258 exactly (\code{CT = 78} with \code{n1 = 4}, i.e. counting
 1915 as an empty period, gives 0.2587). Since all seal counts are 1, the
 paper's equal entries for equations 3 and 4 suggest that the equation 4

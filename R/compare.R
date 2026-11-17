@@ -15,9 +15,10 @@
 #'   later than the last sighting.
 #' @param alpha Significance level, in (0, 1).
 #'
-#' @return A data frame with one row per method and columns `method`,
-#'   `function_name`, `estimate`, `lower`, `upper`, `interval_type` and
-#'   `note`. Persistence tests report the one-sided upper bound in `upper`.
+#' @return A data frame of class `ede_compare`, with one row per method and
+#'   columns `method`, `function_name`, `estimate`, `lower`, `upper`,
+#'   `interval_type` and `note`. Persistence tests report the one-sided upper
+#'   bound in `upper`. Use `plot()` for a forest plot.
 #'
 #' @examples
 #' ede_compare(sighting_data(monk_seal), test_year = 2050)
@@ -40,7 +41,9 @@ ede_compare <- function(sd, test_year, alpha = 0.05) {
     mcinerny2006 = function() mcinerny2006(sd, alpha = alpha, test_year = test_year),
     burgman1995 = function() burgman1995(sd, alpha = alpha, test_year = test_year),
     solow_roberts2003 = function() solow_roberts2003(sd, alpha = alpha, test_year = test_year),
-    jaric2010 = function() jaric2010(sd, alpha = alpha, test_year = test_year)
+    jaric2010 = function() jaric2010(sd, alpha = alpha, test_year = test_year),
+    hall_wang1999 = function() hall_wang1999(sd, alpha = alpha),
+    fraga_alves_neves2014 = function() fraga_alves_neves2014(sd)
   )
 
   rows <- lapply(names(calls), function(name) {
@@ -69,5 +72,7 @@ ede_compare <- function(sd, test_year, alpha = 0.05) {
                upper = result$upper, interval_type = result$interval_type,
                note = paste(notes, collapse = " "))
   })
-  do.call(rbind, rows)
+  out <- do.call(rbind, rows)
+  class(out) <- c("ede_compare", "data.frame")
+  out
 }

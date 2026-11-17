@@ -21,8 +21,8 @@ the Bayesian models later in this vignette give those.
 Their source papers define no point estimate, so EDE reports the one-sided
 upper confidence bound obtained by inverting each test.
 
-The column containing these p-values is currently named `chance` for
-compatibility with EDE 0.1.0.
+The p-value curves returned with `data_out = TRUE` have a column `p_value`
+(the former name, `chance`, is a deprecated alias).
 
 ## Input and observation origin
 
@@ -87,15 +87,28 @@ jaric2010(sd, test_year = 2000)
   bound coincides with that of `robson1964()`.
 - `jaric2010()` uses the average interval and can adjust it for a trend in
   consecutive interval lengths. It is an index rather than a formal test.
+- `mccarthy1998()` is the Solow (1993a) test with the time axis replaced by
+  cumulative sighting effort, for records in which effort changed over time;
+  the effort is supplied by the user, one value per time unit.
 
 The full p-value curve is available with `data_out = TRUE`:
 
 ```{r}
 curve <- jaric2010(sd, test_year = 2000, data_out = TRUE)
-plot(curve$time, curve$chance, type = "l",
+plot(curve$time, curve$p_value, type = "l",
      xlab = "candidate time", ylab = "index")
 abline(h = 0.05, lty = 2)
 ```
+
+## Extreme-value estimators
+
+`ole()` is the first of a family of estimators that treat the latest sightings as the upper order statistics of the sighting-time distribution, whose endpoint is the extinction time. EDE adds `hall_wang1999()`, `fraga_alves_neves2014()`, `dekkers1989()` and `smith1985()`, the choice of the number of sightings with `ede_select_k()`, a test of whether the endpoint is finite (`ede_endpoint_test()`), and checks of the sighting model (`vogel2009()`, `ede_field_test()`). They are described in `vignette("extreme-value-methods")`.
+
+```{r}
+hall_wang1999(sd, k = 8)
+```
+
+The effect of the sighting model on all of these methods is quantified in `vignette("choosing-a-method")`.
 
 ## A Bayesian view
 
@@ -189,13 +202,26 @@ at the largest `time`, so ages in millions of years should be entered as
 `ede_compare()` applies every method that needs only the sighting record:
 
 ```{r}
-ede_compare(sighting_data(monk_seal), test_year = 2050)
+cmp <- ede_compare(sighting_data(monk_seal), test_year = 2050)
+cmp
+```
+
+`plot(cmp)` draws the estimates, intervals and upper bounds as a forest plot.
+
+```{r, fig.height = 4.5}
+plot(cmp)
 ```
 
 ## Choosing a method
 
-- Use OLE when the recent record is sufficiently long and an extreme-value
-  model is defensible.
+- Use `hall_wang1999()` when an extreme-value model is defensible: its
+  interval is exact, and an infinite upper limit is informative, not a
+  failure. `ole()` fits the same model but under-covers in simulation, most
+  of all with many sightings; limit it with `ede_select_k()`.
+  `fraga_alves_neves2014()` covers the Gumbel domain.
+- Use `robson1964()` for a bound that keeps its coverage whatever the shape of
+  the sighting rate, accepting that it is wide.
+- Use `mccarthy1998()` when sighting effort varied and can be quantified.
 - Use `solow1993()` only when a constant sighting rate is plausible.
 - Use `solow1993b()` for an approximately exponential decline.
 - Use `jaric2010()` when the intervals themselves show a gradual trend.
@@ -213,12 +239,21 @@ Running several scientifically defensible methods is useful, but p-values from
 models whose assumptions are violated should not be combined or interpreted as
 extinction probabilities.
 
+The assumptions of each method, and a simulation study of their coverage and
+bias under constant, declining and varying sighting rates, are in
+`vignette("choosing-a-method")`. In short, the constant-rate tests are
+calibrated only when the rate is constant, `robson1964()` keeps its coverage
+under every scenario simulated but gives wide bounds, and the extreme-value
+estimators have bounded intervals only when the record carries strong
+evidence of a finite endpoint.
+
 ## References
 
 References for the methods introduced after the core estimators (Rout et
 al. 2009; Thompson et al. 2013, 2017, 2019; Caley & Barry 2014; Brook et al.
-2019; Marshall 1994, 1997; Weiss & Marshall 1999) are given on the help page
-of each function.
+2019; Marshall 1994, 1997; Weiss & Marshall 1999; McCarthy 1998) are given on
+the help page of each function; those of the extreme-value methods are in
+`vignette("extreme-value-methods")`.
 
 Burgman, M. A., Grimson, R. C., & Ferson, S. (1995). Inferring threat from
 scientific collections. *Conservation Biology*, 9(4), 923-928.
