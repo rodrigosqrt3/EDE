@@ -150,7 +150,7 @@ weiss_marshall1999_prior <- function(records) {
   c(c = out[[1]], d = out[[2]])
 }
 
-#' Posterior pieces for Weiss & Marshall (1999), in residual time u = S - t[m]
+#' Posterior pieces for Weiss & Marshall (1999), in residual time u = S - t_m
 #' @keywords internal
 #' @noRd
 weiss_marshall1999_posterior <- function(sd, prior_p, l) {
@@ -192,7 +192,7 @@ weiss_marshall1999_posterior <- function(sd, prior_p, l) {
        p_mean = p1, p_sd = sqrt(max(p2 - p1^2, 0)))
 }
 
-#' Posterior CDF of the residual u = S - t[m]
+#' Posterior CDF of the residual u = S - t_m
 #' @keywords internal
 #' @noRd
 weiss_marshall1999_cdf <- function(post, u) {
@@ -202,7 +202,7 @@ weiss_marshall1999_cdf <- function(post, u) {
   min(1, sum(post$w * frac))
 }
 
-#' Posterior quantile of the residual u = S - t[m] (Appendix)
+#' Posterior quantile of the residual u = S - t_m (Appendix)
 #' @keywords internal
 #' @noRd
 weiss_marshall1999_quantile <- function(post, prob) {
